@@ -22,3 +22,7 @@ expertMode = true
 OPENSKY_CLIENT_ID = "bahrainneurology@gmail.com-api-client"
 OPENSKY_CLIENT_SECRET = "CPFoUPeEw8HZqFTSHHrEuEB1K3ejA6Bo"
 WEATHER_API_KEY = "f40cc357f6be024566a0c703c7320ea6"
+
+[[ports]]
+localPort = 3000
+externalPort = 80

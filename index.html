@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pravasi Intel Dashboard</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <style>
+            /* This styles the sidebar on the right side of your map */
+            #sidebar {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                width: 300px;
+                max-height: 90vh;
+                background: rgba(22, 27, 34, 0.9);
+                border: 1px solid #30363d;
+                border-radius: 8px;
+                overflow-y: auto;
+                z-index: 1000;
+                padding: 15px;
+                font-size: 0.8rem;
+                color: #c9d1d9;
+            }
+            .news-item {
+                margin-bottom: 15px;
+                border-bottom: 1px solid #30363d;
+                padding-bottom: 10px;
+            }
+            .news-item a { color: #58a6ff; text-decoration: none; font-weight: bold; }
+            body { margin: 0; padding: 0; background-color: #0d1117; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; overflow: hidden; }
+            #map { flex-grow: 1; height: 100vh; }
+            #sidebar { width: 350px; height: 100vh; background: #161b22; border-left: 1px solid #30363d; display: flex; flex-direction: column; }
+            .sidebar-header { padding: 20px; background: #010409; border-bottom: 1px solid #30363d; font-weight: bold; color: #58a6ff; letter-spacing: 1px; }
+            #intel-feed { flex-grow: 1; overflow-y: auto; padding: 15px; }
+            .intel-card { background: #0d1117; border: 1px solid #30363d; padding: 12px; margin-bottom: 10px; border-radius: 6px; font-size: 0.85rem; }
+            .intel-card small { color: #8b949e; display: block; margin-bottom: 5px; }
+            .intel-card a { color: #58a6ff; text-decoration: none; font-weight: bold; }
+            .intel-card a:hover { text-decoration: underline; }
+            .threat-level-high { border-left: 4px solid #f85149; } /* Red for high threat */
+        </style>
+</head>
+<body>
+        <div id="map"></div>
+        <div id="sidebar">
+            <div class="sidebar-header">📡 PRAVASI INTEL COMMAND</div>
+            <div style="padding: 15px; background: #010409; border-bottom: 1px solid #30363d;">
+                <input type="text" id="intel-search" placeholder="Search City or Airline..." 
+                       style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box;">
+            </div>
+
+            <div id="intel-feed">
+                <p style="color: #8b949e; padding: 15px;">Initializing global feeds...</p>
+            </div>
+        </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 1. Initialize Map
+        const map = L.map('map').setView([26.0, 50.5], 5);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        const planesGroup = L.layerGroup().addTo(map);
+
+        // 2. Weather Logic (Now re-connected)
+        async function initWeather() {
+            try {
+                const res = await fetch('/api/weather-key');
+                const data = await res.json();
+                const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${data.key}`, {
+                    opacity: 0.5
+                });
+
+                // Add control box to toggle planes and weather
+                L.control.layers(null, { 
+                    "Live Planes": planesGroup, 
+                    "Live Weather": rainLayer 
+                }, { position: 'topright' }).addTo(map);
+
+                rainLayer.addTo(map); // Default on
+            } catch (e) { console.log("Weather Link Failed:", e); }
+        }
+
+        // 3. Flight Logic (Now re-connected)
+        async function updateFlights() {
+            try {
+                const response = await fetch('/api/planes');
+                const data = await response.json();
+                planesGroup.clearLayers();
+                if (data.states) {
+                    data.states.slice(0, 200).forEach(p => {
+                        if (p[6] && p[5]) {
+                            L.circleMarker([p[6], p[5]], {
+                                radius: 4, color: '#00ffff', weight: 1, fillOpacity: 0.8
+                            }).addTo(planesGroup).bindPopup(`<b>Flight:</b> ${p[1] || 'Unknown'}`);
+                        }
+                    });
+                }
+            } catch (e) { console.log("Flight API Busy..."); }
+        }
+
+        // 4. Intel News (GDELT)
+        async function updateIntel(search = "") {
+            const feed = document.getElementById('intel-feed');
+            feed.innerHTML = "<p style='padding:15px;'>Syncing intel...</p>";
+            try {
+                const response = await fetch(`/api/intel?search=${encodeURIComponent(search)}`);
+                const articles = await response.json();
+                feed.innerHTML = "";
+                articles.forEach(a => {
+                    const card = document.createElement('div');
+                    card.className = "intel-card";
+                    card.innerHTML = `<small>${a.domain}</small><br><a href="${a.url}" target="_blank">${a.title}</a>`;
+                    feed.appendChild(card);
+                });
+            } catch (e) { feed.innerHTML = "<p>Feed delayed...</p>"; }
+        }
+
+        // 5. Search Logic
+        document.getElementById('intel-search').addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const val = e.target.value;
+                // Move map to city
+                const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}`);
+                const gData = await geo.json();
+                if (gData[0]) map.flyTo([gData[0].lat, gData[0].lon], 7);
+                // Filter news
+                updateIntel(val);
+            }
+        });
+
+        // START COMMAND CENTER
+        initWeather();
+        updateFlights();
+        updateIntel();
+        setInterval(updateFlights, 30000); // Planes every 30s
+        setInterval(updateIntel, 600000);  // News every 10m
+    </script>
+</body>
+</html>
