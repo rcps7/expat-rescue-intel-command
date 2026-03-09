@@ -1,0 +1,24 @@
+entrypoint = "index.js"
+modules = ["nodejs-22"]
+hidden = [".config", "package-lock.json"]
+
+[gitHubImport]
+requiredFiles = [".replit", "replit.nix", "package.json", "package-lock.json"]
+
+[nix]
+channel = "stable-24_11"
+
+[deployment]
+run = ["node", "index.js"]
+deploymentTarget = "autoscale"
+ignorePorts = false
+
+[agent]
+expertMode = true
+
+[userenv]
+
+[userenv.shared]
+OPENSKY_CLIENT_ID = "bahrainneurology@gmail.com-api-client"
+OPENSKY_CLIENT_SECRET = "CPFoUPeEw8HZqFTSHHrEuEB1K3ejA6Bo"
+WEATHER_API_KEY = "f40cc357f6be024566a0c703c7320ea6"
