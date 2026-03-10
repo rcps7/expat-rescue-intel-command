@@ -3,141 +3,561 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pravasi Intel Dashboard</title>
-
+    <title>Pravasi Intel Dashboard | Tactical Command</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-        <style>
-            /* This styles the sidebar on the right side of your map */
-            #sidebar {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                width: 300px;
-                max-height: 90vh;
-                background: rgba(22, 27, 34, 0.9);
-                border: 1px solid #30363d;
-                border-radius: 8px;
-                overflow-y: auto;
-                z-index: 1000;
-                padding: 15px;
-                font-size: 0.8rem;
-                color: #c9d1d9;
-            }
-            .news-item {
-                margin-bottom: 15px;
-                border-bottom: 1px solid #30363d;
-                padding-bottom: 10px;
-            }
-            .news-item a { color: #58a6ff; text-decoration: none; font-weight: bold; }
-            body { margin: 0; padding: 0; background-color: #0d1117; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; overflow: hidden; }
-            #map { flex-grow: 1; height: 100vh; }
-            #sidebar { width: 350px; height: 100vh; background: #161b22; border-left: 1px solid #30363d; display: flex; flex-direction: column; }
-            .sidebar-header { padding: 20px; background: #010409; border-bottom: 1px solid #30363d; font-weight: bold; color: #58a6ff; letter-spacing: 1px; }
-            #intel-feed { flex-grow: 1; overflow-y: auto; padding: 15px; }
-            .intel-card { background: #0d1117; border: 1px solid #30363d; padding: 12px; margin-bottom: 10px; border-radius: 6px; font-size: 0.85rem; }
-            .intel-card small { color: #8b949e; display: block; margin-bottom: 5px; }
-            .intel-card a { color: #58a6ff; text-decoration: none; font-weight: bold; }
-            .intel-card a:hover { text-decoration: underline; }
-            .threat-level-high { border-left: 4px solid #f85149; } /* Red for high threat */
-        </style>
+    <style>
+        /* --- CORE LAYOUT --- */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d1117;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex; /* Creates the three-column structure */
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #map {
+            flex-grow: 1; /* Map takes up all available center space */
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* --- SIDEBAR UNIVERSAL STYLES --- */
+        .sidebar {
+            width: 320px;
+            height: 100vh;
+            background: #161b22;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #left-sidebar { border-right: 1px solid #30363d; }
+        #right-sidebar { border-left: 1px solid #30363d; }
+
+        .sidebar-header {
+            padding: 15px;
+            background: #010409;
+            border-bottom: 1px solid #30363d;
+            font-weight: bold;
+            color: #58a6ff;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        /* --- SCROLLBAR STYLING --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0d1117; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+        /* --- TACTICAL COMPONENTS --- */
+        .panel-section {
+            border-bottom: 1px solid #333;
+            padding: 15px;
+        }
+
+        h3 { margin-top: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* News Ticker */
+        #ticker-container {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            border-top: 1px solid #FFBF00;
+            color: #FFBF00;
+            overflow: hidden;
+            white-space: nowrap;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #ticker-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: marquee 180s linear infinite; /* Slowed down for readability */
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        .intel-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .intel-card a { color: #58a6ff; text-decoration: none; }
+    </style>
 </head>
 <body>
-        <div id="map"></div>
-        <div id="sidebar">
-            <div class="sidebar-header">📡 PRAVASI INTEL COMMAND</div>
-            <div style="padding: 15px; background: #010409; border-bottom: 1px solid #30363d;">
-                <input type="text" id="intel-search" placeholder="Search City or Airline..." 
-                       style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box;">
-            </div>
 
-            <div id="intel-feed">
-                <p style="color: #8b949e; padding: 15px;">Initializing global feeds...</p>
+    <div id="left-sidebar" class="sidebar">
+        <div class="sidebar-header">📋 MISSION LOGS</div>
+
+        <div class="panel-section" style="background: rgba(88, 166, 255, 0.05);">
+            <h3 style="color: #58a6ff;">📝 SITREP NOTES</h3>
+            <textarea id="sitrep-input" placeholder="Enter tactical updates..." 
+                      style="width: 100%; height: 150px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; font-family: monospace; font-size: 12px; border-radius: 4px; padding: 10px; box-sizing: border-box; resize: none;"></textarea>
+            <div style="display: flex; gap: 5px; margin-top: 8px;">
+                <button onclick="saveSitrep()" style="flex: 2; background: #238636; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px;">SAVE REPORT</button>
+                <button onclick="clearSitrep()" style="flex: 1; background: #30363d; color: #8b949e; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">CLEAR</button>
             </div>
         </div>
+
+        <div id="intercept-log-container" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="color: #FFBF00; margin: 0;">📋 TACTICAL LOG</h3>
+                <button onclick="downloadLog()" style="background: none; border: 1px solid #FFBF00; color: #FFBF00; font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer;">DOWNLOAD TXT</button>
+            </div>
+            <div id="intercept-log-content" style="font-family: 'Courier New', monospace; font-size: 11px; color: #8b949e; line-height: 1.4;">
+                System initialized. Monitoring airspace...
+            </div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="right-sidebar" class="sidebar">
+        <div class="sidebar-header">📡 INTEL COMMAND</div>
+
+        <div id="status-bar" style="padding: 10px 15px; font-size: 0.7rem; background: #010409; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px;">
+            <span id="status-light" style="width: 8px; height: 8px; background: grey; border-radius: 50%;"></span>
+            <span id="status-text">SYSTEM STANDBY</span>
+        </div>
+
+        <div class="panel-section" style="background: rgba(255,191,0,0.03);">
+            <h3 style="color: #FFBF00;">📊 OBBI METEO VITALS</h3>
+            <div id="meteo-content" style="font-family: monospace; font-size: 12px; color: #c9d1d9;">Syncing atmosphere...</div>
+        </div>
+
+        <div class="panel-section">
+            <h3 style="color: #FFBF00;">📡 TARGET WATCHLIST</h3>
+            <div id="watchlist-content" style="max-height: 180px; overflow-y: auto; font-size: 11px;">Scanning regional activity...</div>
+        </div>
+
+        <div style="padding: 15px; background: #010409;">
+            <input type="text" id="intel-search" placeholder="Search Global News..." 
+                   style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box; font-size: 12px;">
+        </div>
+
+        <div id="intel-feed" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
+            <p style="color: #8b949e; font-size: 12px;">Syncing global feeds...</p>
+        </div>
+    </div>
+
+    <div id="ticker-container">
+        <div id="ticker-content">INITIALIZING GLOBAL INTEL FEED... /// STANDBY FOR MULTI-SOURCE SYNC...</div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // 1. Initialize Map
-        const map = L.map('map').setView([26.0, 50.5], 5);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
 
-        const planesGroup = L.layerGroup().addTo(map);
+            const map = L.map('map', { attributionControl: false }).setView([20, 0], 2);
 
-        // 2. Weather Logic (Now re-connected)
-        async function initWeather() {
-            try {
-                const res = await fetch('/api/weather-key');
-                const data = await res.json();
-                const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${data.key}`, {
-                    opacity: 0.5
-                });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
 
-                // Add control box to toggle planes and weather
-                L.control.layers(null, { 
-                    "Live Planes": planesGroup, 
-                    "Live Weather": rainLayer 
-                }, { position: 'topright' }).addTo(map);
 
-                rainLayer.addTo(map); // Default on
-            } catch (e) { console.log("Weather Link Failed:", e); }
-        }
 
-        // 3. Flight Logic (Now re-connected)
-        async function updateFlights() {
-            try {
-                const response = await fetch('/api/planes');
-                const data = await response.json();
-                planesGroup.clearLayers();
-                if (data.states) {
-                    data.states.slice(0, 200).forEach(p => {
-                        if (p[6] && p[5]) {
-                            L.circleMarker([p[6], p[5]], {
-                                radius: 4, color: '#00ffff', weight: 1, fillOpacity: 0.8
-                            }).addTo(planesGroup).bindPopup(`<b>Flight:</b> ${p[1] || 'Unknown'}`);
-                        }
-                    });
+            const planesGroup = L.layerGroup().addTo(map);
+
+            const corridorLayer = L.layerGroup().addTo(map);
+
+
+
+            // 2. Weather & Controls
+
+            async function initWeather() {
+
+                try {
+
+                    const res = await fetch('/api/weather-key');
+
+                    const data = await res.json();
+
+                    const apiKey = data.key;
+
+
+
+                    const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.3 });
+
+                    const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.4 });
+
+
+
+                    L.control.layers(null, {
+
+                        "Radar Targets": planesGroup,
+
+                        "Wind Velocity": windLayer,
+
+                        "Precipitation": rainLayer,
+
+                        "Safe Corridors": corridorLayer
+
+                    }, { position: 'topright', collapsed: false }).addTo(map);
+
+
+
+                    windLayer.addTo(map);
+
+                } catch (e) {
+
+                    console.log("Weather Overlay Sync Failed.");
+
                 }
-            } catch (e) { console.log("Flight API Busy..."); }
-        }
 
-        // 4. Intel News (GDELT)
-        async function updateIntel(search = "") {
-            const feed = document.getElementById('intel-feed');
-            feed.innerHTML = "<p style='padding:15px;'>Syncing intel...</p>";
-            try {
-                const response = await fetch(`/api/intel?search=${encodeURIComponent(search)}`);
-                const articles = await response.json();
-                feed.innerHTML = "";
-                articles.forEach(a => {
-                    const card = document.createElement('div');
-                    card.className = "intel-card";
-                    card.innerHTML = `<small>${a.domain}</small><br><a href="${a.url}" target="_blank">${a.title}</a>`;
-                    feed.appendChild(card);
-                });
-            } catch (e) { feed.innerHTML = "<p>Feed delayed...</p>"; }
-        }
-
-        // 5. Search Logic
-        document.getElementById('intel-search').addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-                const val = e.target.value;
-                // Move map to city
-                const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${val}`);
-                const gData = await geo.json();
-                if (gData[0]) map.flyTo([gData[0].lat, gData[0].lon], 7);
-                // Filter news
-                updateIntel(val);
             }
-        });
 
-        // START COMMAND CENTER
-        initWeather();
-        updateFlights();
-        updateIntel();
-        setInterval(updateFlights, 30000); // Planes every 30s
-        setInterval(updateIntel, 600000);  // News every 10m
+
+
+            // 3. Flight Logic + HOVER POPUP
+
+            async function updateFlights() {
+
+                try {
+
+                    const response = await fetch('/api/planes');
+
+                    const data = await response.json();
+
+                    const watchlist = document.getElementById('watchlist-content');
+
+
+
+                    if (data.states) {
+
+                        planesGroup.clearLayers();
+
+                        let alertsHtml = "";
+
+
+
+                        data.states.forEach(p => {
+
+                            const dot = L.circleMarker([p.lat, p.lng], {
+
+                                radius: p.emergency ? 8 : 4,
+
+                                color: p.emergency ? '#ff0000' : '#FFBF00',
+
+                                fillColor: p.emergency ? '#ff0000' : '#FFBF00',
+
+                                fillOpacity: 0.8,
+
+                                weight: 1
+
+                            }).addTo(planesGroup);
+
+
+
+                            // HOVER POPUP LOGIC
+
+                            const popupContent = `
+
+                                <div style="font-size:12px;">
+
+                                    <b>ID:</b> ${p.callsign}<br>
+
+                                    <b>ALT:</b> ${p.alt} FT<br>
+
+                                    <b>STATUS:</b> ${p.emergency ? 'EMERGENCY' : 'NORMAL'}
+
+                                </div>
+
+                            `;
+
+
+
+                            // Show on Mouseover, Hide on Mouseout
+
+                            dot.on('mouseover', function (e) {
+
+                                this.bindPopup(popupContent).openPopup();
+
+                            });
+
+                            dot.on('mouseout', function (e) {
+
+                                this.closePopup();
+
+                            });
+
+
+
+                            if (p.emergency || p.gulfAlert) {
+
+                                const alertClass = p.emergency ? 'alert-item alert-emergency' : 'alert-item';
+
+                                alertsHtml += `<div class="${alertClass}"><strong>${p.emergency ? '⚠️ EMERGENCY' : '📍 GULF ZONE'}</strong><br>${p.callsign} | ${p.alt} ft</div>`;
+
+                            }
+
+                        });
+
+                        watchlist.innerHTML = alertsHtml || "Airspace Clear.";
+
+                    }
+
+                } catch (e) { console.log("Flight Sync Error"); }
+
+            }
+
+
+
+            // 4. Intelligence Logic
+
+            async function updateIntel(search = "") {
+
+                const feed = document.getElementById('intel-feed');
+
+                try {
+
+                    const response = await fetch(`/api/intel?search=${encodeURIComponent(search)}`);
+
+                    const articles = await response.json();
+
+                    feed.innerHTML = "";
+
+                    articles.slice(0, 10).forEach(a => {
+
+                        const card = document.createElement('div');
+
+                        card.className = "intel-card";
+
+                        card.innerHTML = `<small>${a.domain || 'Global'}</small><a href="${a.url}" target="_blank">${a.title}</a>`;
+
+                        feed.appendChild(card);
+
+                    });
+
+                } catch (e) { feed.innerHTML = "<p>Feed delayed...</p>"; }
+
+            }
+
+
+
+            async function updateTicker() {
+
+                try {
+
+                    // Try Reuters first
+
+                    let response = await fetch('/api/intel');
+
+                    let articles = await response.json();
+
+
+
+                    // If the array is empty or says "Offline", try the fallback directly
+
+                    if (!articles || articles.length === 0 || articles[0].title.includes("Offline"))             {
+
+                         const fallback = await fetch('https://ok.surf/api/v1/news-section?section=World');
+
+                         const data = await fallback.json();
+
+                         articles = data.World.map(item => ({ title: item.title }));
+
+                 }
+
+
+
+                    if (articles.length > 0) {
+
+                        document.getElementById('ticker-content').innerText = 
+
+                            "⚠️ INTEL UPDATE: " + articles.map(a => a.title).join("  ///  ");
+
+                    }
+
+                } catch (e) {
+
+                    document.getElementById('ticker-content').innerText = "SYSTEM ALERT: EXTERNAL DATA FEEDS RESTRICTED BY PROVIDER /// STANDBY...";
+
+                }
+
+            }
+
+
+
+            // 5. Meteo Vitals (OBBI)
+
+            async function updateMeteo() {
+
+                try {
+
+                    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=26.27&longitude=50.63&current=temperature_2m,surface_pressure,wind_speed_10m');
+
+                    const data = await res.json();
+
+                    const c = data.current;
+
+                    document.getElementById('meteo-content').innerHTML = `
+
+                        TEMP: ${c.temperature_2m}°C | WIND: ${c.wind_speed_10m} km/h<br>
+
+                        PRES: ${c.surface_pressure} hPa | OBBI STAT: CLOSED
+
+                    `;
+
+                } catch (e) { }
+
+            }
+
+
+
+            // 6. System Integrity
+
+            async function checkSystem() {
+
+                const light = document.getElementById('status-light');
+
+                const text = document.getElementById('status-text');
+
+                try {
+
+                    const res = await fetch('/api/status');
+
+                    const data = await res.json();
+
+                    if (data.internet === "ONLINE") {
+
+                        light.style.backgroundColor = "#238636";
+
+                        text.innerText = "ONLINE: " + data.timestamp;
+
+                        text.style.color = "#3fb950";
+
+                    }
+
+                } catch (e) {
+
+                    light.style.backgroundColor = "#da3633";
+
+                    text.innerText = "OFFLINE";
+
+                }
+
+            }
+
+
+
+            function drawCorridors() {
+
+                const paths = [
+
+                    { name: "M600 Recovery", coords: [[29, 48], [27, 50], [26.2, 50.6], [25, 52]] },
+
+                    { name: "L602 Humanitarian", coords: [[24, 51], [25.5, 50.8], [26.2, 50.6], [27.5, 49]] }
+
+                ];
+
+                paths.forEach(p => {
+
+                    L.polyline(p.coords, { color: '#FFBF00', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(corridorLayer).bindTooltip(p.name);
+
+                });
+
+                L.circleMarker([26.27, 50.63], { radius: 8, color: '#ff0000', weight: 2 }).addTo(corridorLayer).bindPopup("OBBI CLOSED");
+
+            }
+
+
+
+            // Initial Boot
+
+            initWeather();
+
+            updateFlights();
+
+            updateIntel();
+
+            updateTicker();
+
+            updateMeteo();
+
+            checkSystem();
+
+            drawCorridors();
+
+
+
+            // Intervals
+
+            setInterval(updateFlights, 20000);
+
+            setInterval(updateTicker, 300000);
+
+            setInterval(updateMeteo, 900000);
+
+            setInterval(checkSystem, 10000);
+
+            // Function to download the Intercept Log as a .txt file
+
+            function downloadLog() {
+
+                const logContent = document.getElementById('intercept-log-content').innerText;
+
+                const blob = new Blob([logContent], { type: 'text/plain' });
+
+                const anchor = document.createElement('a');
+
+                anchor.download = `intercept_log_${new Date().toISOString().slice(0,10)}.txt`;
+
+                anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+
+                anchor.dataset.downloadurl = ['text/plain', anchor.download, anchor.href].join(':');
+
+                anchor.click();
+
+            }
+
+
+
+            // Function to clear the SITREP pad
+
+            function clearSitrep() {
+
+                if(confirm("Clear all current notes?")) {
+
+                    document.getElementById('sitrep-input').value = "";
+
+                    localStorage.removeItem('pravasi_sitrep');
+
+                }
+
+            }
+
+
+
+            // Load SITREP on boot (Make sure this is in your startup sequence)
+
+            document.addEventListener('DOMContentLoaded', () => {
+
+                const savedText = localStorage.getItem('pravasi_sitrep');
+
+                if (savedText) {
+
+                    document.getElementById('sitrep-input').value = savedText;
+
+                }
+
+            });
+
+        
     </script>
 </body>
 </html>
