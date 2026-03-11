@@ -102,6 +102,24 @@
     </style>
 </head>
 <body>
+    <div id="gatekeeper-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #010409; z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
+        <div style="width: 90%; max-width: 500px; background: #161b22; border: 1px solid #FFBF00; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 50px rgba(255, 191, 0, 0.2);">
+            <h1 style="color: #FFBF00; font-size: 1.5rem; margin-top: 0; letter-spacing: 2px;">⚠️ AUTHORIZED ACCESS ONLY</h1>
+            <div style="background: #0d1117; padding: 15px; border-radius: 4px; border: 1px solid #30363d; margin-bottom: 20px; text-align: left; max-height: 200px; overflow-y: auto;">
+                <p style="color: #8b949e; font-size: 12px; line-height: 1.6; font-family: monospace;">
+                    <strong>PROVISIONAL INTELLIGENCE DASHBOARD (PRAVASI INTEL)</strong><br><br>
+                    1. Data provided is for strategic awareness and simulation support.<br>
+                    2. Users must not use this data for flight navigation or official medical triage without verification.<br>
+                    3. SITREP logs are session-bound and the property of the authorized operator.<br><br>
+                    Unauthorized access to this command terminal is strictly prohibited.
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="grantAccess()" style="flex: 2; background: #238636; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; letter-spacing: 1px;">I AGREE / ENTER TERMINAL</button>
+                <button onclick="denyAccess()" style="flex: 1; background: #da3633; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">EXIT</button>
+            </div>
+        </div>
+    </div>
 
     <div id="left-sidebar" class="sidebar">
         <div class="sidebar-header">📋 MISSION LOGS</div>
@@ -163,6 +181,28 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        function grantAccess() {
+            // Hide the overlay
+            document.getElementById('gatekeeper-overlay').style.display = 'none';
+
+            // Optional: Save agreement in session storage so it doesn't pop up again this session
+            sessionStorage.setItem('access_granted', 'true');
+
+            // Initialize systems if they were paused
+            console.log("Terminal Access Granted. Initializing Vitals...");
+        }
+
+        function denyAccess() {
+            // Redirect the user to Google
+            window.location.href = "https://www.google.com";
+        }
+
+        // Auto-check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('access_granted') === 'true') {
+                document.getElementById('gatekeeper-overlay').style.display = 'none';
+            }
+        });
         // 1. Initialize Map
 
             const map = L.map('map', { attributionControl: false }).setView([20, 0], 2);
