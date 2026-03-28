@@ -147,7 +147,7 @@ app.get("/api/alerts", async (req, res) => {
 });
 
 // Fallback for SPA (Single Page Application)
-app.get("*", (req, res) => {
+app.get("/*path", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
