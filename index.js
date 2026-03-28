@@ -147,12 +147,18 @@ app.get("/api/alerts", async (req, res) => {
 });
 
 // Fallback for SPA (Single Page Application)
-app.get("/*path", (req, res) => {
+app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // --- 🚀 SYSTEM IGNITION ---
 const srvPort = process.env.PORT || 3000;
+// Fix for "Cannot GET /alerts/..."
+// This redirects any alert sub-pages back to the main dashboard 
+// so the app doesn't crash with a 404.
+app.get("/alerts/:id", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 app.listen(srvPort, "0.0.0.0", () => {
     console.log(`
