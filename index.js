@@ -5,7 +5,13 @@ const axios = require("axios"); // Moved to the top with other imports
 
 const app = express();
 const PORT = 3000;
-const parser = new Parser();
+const parser = new Parser({
+    headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8'
+    },
+    timeout: 10000 // Added a timeout to prevent hanging
+});
 
 // Serve the Main Dashboard
 app.get("/", (req, res) => {
@@ -83,7 +89,11 @@ app.get("/api/intel", async (req, res) => {
                     url: item.link,
                     domain: source.name
                 }))
-            ).catch(() => []) // If one source is down, the rest continue
+        ).catch((err) => {
+                // ADD THIS LOG TO YOUR CONSOLE:
+                console.error(`🚨 FEED FAILED: ${source.name} - Reason: ${err.message}`);
+                return []; 
+            })
         );
 
         const results = await Promise.all(feedPromises);

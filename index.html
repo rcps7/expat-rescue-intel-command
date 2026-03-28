@@ -6,6 +6,61 @@
                     <title>Pravasi Intel Dashboard | Tactical Command</title>
                     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
                     <style>
+                        /* --- NEW LAYOUT ENGINE --- */
+                        body {
+                            flex-direction: column; /* Stack Top Bar -> Map -> Bottom Bar */
+                        }
+
+                        .horizontal-sidebar {
+                            width: 100% !important;
+                            height: 120px !important; /* Fixed height for bars */
+                            flex-direction: row !important;
+                            overflow: hidden;
+                        }
+
+                        #map {
+                            flex-grow: 1; /* Map takes all remaining space */
+                            height: auto !important;
+                        }
+
+                        /* Content alignment for the bars */
+                        .top-bar-content, .bottom-bar-content {
+                            display: flex;
+                            flex-direction: row;
+                            width: 100%;
+                            align-items: center;
+                            gap: 20px;
+                            padding: 0 15px;
+                        }
+
+                        /* --- FLOATING MAP CONTROLS --- */
+                        .leaflet-top, .leaflet-bottom {
+                            margin: 20px; /* Pushes buttons away from the sidebars */
+                        }
+
+                        .leaflet-control-layers, .leaflet-control-zoom {
+                            border: 1px solid #FFBF00 !important;
+                            background: rgba(13, 17, 23, 0.9) !important;
+                            box-shadow: 0 0 15px rgba(255, 191, 0, 0.3) !important;
+                        }
+
+                        /* News Feed Horizontal Scroll */
+                        #intel-feed {
+                            display: flex;
+                            flex-direction: row;
+                            overflow-x: auto;
+                            gap: 10px;
+                            white-space: nowrap;
+                        }
+
+                        .intel-card {
+                            min-width: 250px;
+                            margin-bottom: 0;
+                        }
+
+                        /* SITREP mini-style */
+                        .sitrep-box { display: flex; gap: 10px; align-items: center; flex-grow: 1; }
+                        #sitrep-input { height: 60px !important; width: 300px !important; }
                         .ship-icon {
                             transition: transform 0.5s ease-in-out;
                         }
@@ -149,91 +204,38 @@
                     </style>
                 </head>
                 <body>
-                    <div id="gatekeeper-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #010409; z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
-                        <div style="width: 90%; max-width: 500px; background: #161b22; border: 1px solid #FFBF00; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 50px rgba(255, 191, 0, 0.2);">
-                            <h1 style="color: #FFBF00; font-size: 1.5rem; margin-top: 0; letter-spacing: 2px;">⚠️ AUTHORIZED ACCESS ONLY</h1>
-                            <div style="background: #0d1117; padding: 15px; border-radius: 4px; border: 1px solid #30363d; margin-bottom: 20px; text-align: left; max-height: 200px; overflow-y: auto;">
-                                <p style="color: #8b949e; font-size: 12px; line-height: 1.6; font-family: monospace;">
-                                    <strong>PROVISIONAL INTELLIGENCE DASHBOARD (PRAVASI INTEL)</strong><br><br>
-                                    1. Data provided is for strategic awareness and simulation support.<br>
-                                    2. Users must not use this data for flight navigation or official triage without verification.<br>
-                                    3. SITREP logs are session-bound and the property of the authorized operator.<br><br>
-                                    Unauthorized access to this command terminal is strictly prohibited.
-                                </p>
+                    <div id="right-sidebar" class="sidebar horizontal-sidebar">
+                        <div class="sidebar-header">📡 INTEL COMMAND</div>
+                        <div class="top-bar-content">
+                            <div class="panel-section status-mini">
+                                <span id="status-light"></span> <span id="status-text">STANDBY</span>
                             </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button onclick="grantAccess()" style="flex: 2; background: #238636; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; letter-spacing: 1px;">I AGREE / ENTER TERMINAL</button>
-                                <button onclick="denyAccess()" style="flex: 1; background: #da3633; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">EXIT</button>
+                            <div class="panel-section">
+                                <h3 style="color: #FFBF00;">📊 METEO</h3>
+                                <div id="meteo-content">Sync...</div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div id="left-sidebar" class="sidebar">
-                        <div class="sidebar-header">📋 MISSION LOGS</div>
-
-                        <div class="panel-section" style="background: rgba(88, 166, 255, 0.05);">
-                            <h3 style="color: #58a6ff;">📝 SITREP NOTES</h3>
-                            <textarea id="sitrep-input" placeholder="Enter tactical updates..." 
-                                      style="width: 100%; height: 150px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; font-family: monospace; font-size: 12px; border-radius: 4px; padding: 10px; box-sizing: border-box; resize: none;"></textarea>
-                            <div style="display: flex; gap: 5px; margin-top: 8px;">
-                                <button onclick="saveSitrep()" style="flex: 2; background: #238636; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px;">SAVE REPORT</button>
-                                <button onclick="clearSitrep()" style="flex: 1; background: #30363d; color: #8b949e; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">CLEAR</button>
-                            </div>
-                        </div>
-
-                        <div class="panel-section" style="background: rgba(0, 88, 255, 0.05);">
-                            <h3 style="color: #58a6ff;">🚢 NAVAL INTEL (OBKM)</h3>
-                            <div id="marine-traffic-box" style="width: 100%; height: 200px; border: 1px solid #30363d; border-radius: 4px; overflow: hidden;">
-                                <iframe name="marinetraffic" id="marinetraffic" width="100%" height="200" 
-                                        src="https://www.marinetraffic.com/en/ais/embed/zoom:10/centery:26.2/centerx:50.6/maptype:7/shownames:false/mmsi:0/shipid:0/fleet:/fleet_id:/vsl_type:/show_menu:false/remember:false/get_it:false" 
-                                        frameborder="0"></iframe>
-                            </div>
-                            <p style="font-size: 9px; color: #8b949e; margin-top: 5px;">*AIS Tracking active for Khalifa Bin Salman Port*</p>
-                        </div>
-
-                        <div id="intercept-log-container" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                                <h3 style="color: #FFBF00; margin: 0;">📋 TACTICAL LOG</h3>
-                                <button onclick="downloadLog()" style="background: none; border: 1px solid #FFBF00; color: #FFBF00; font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer;">DOWNLOAD TXT</button>
-                            </div>
-                            <div id="intercept-log-content" style="font-family: 'Courier New', monospace; font-size: 11px; color: #8b949e; line-height: 1.4;">
-                                System initialized. Monitoring airspace...
-                            </div>
+                            <div id="intel-feed">
+                                </div>
                         </div>
                     </div>
 
                     <div id="map"></div>
 
-                    <div id="right-sidebar" class="sidebar">
-                        <div class="sidebar-header">📡 INTEL COMMAND</div>
-
-                        <div id="status-bar" style="padding: 10px 15px; font-size: 0.7rem; background: #010409; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px;">
-                            <span id="status-light" style="width: 8px; height: 8px; background: grey; border-radius: 50%;"></span>
-                            <span id="status-text">SYSTEM STANDBY</span>
+                    <div id="left-sidebar" class="sidebar horizontal-sidebar">
+                        <div class="sidebar-header">📋 MISSION LOGS</div>
+                        <div class="bottom-bar-content">
+                            <div class="panel-section sitrep-box">
+                                <textarea id="sitrep-input" placeholder="Tactical updates..."></textarea>
+                                <button onclick="saveSitrep()" class="btn-save">SAVE</button>
+                            </div>
+                            <div id="intercept-log-container">
+                                <div id="intercept-log-content">System Ready...</div>
+                            </div>
+                            <div class="panel-section watchlist-mini">
+                                 <h3 style="color: #FFBF00;">📡 WATCHLIST</h3>
+                                 <div id="watchlist-content">Scanning...</div>
+                            </div>
                         </div>
-
-                        <div class="panel-section" style="background: rgba(255,191,0,0.03);">
-                            <h3 style="color: #FFBF00;">📊 OBBI METEO VITALS</h3>
-                            <div id="meteo-content" style="font-family: monospace; font-size: 12px; color: #c9d1d9;">Syncing atmosphere...</div>
-                        </div>
-
-                        <div class="panel-section">
-                            <h3 style="color: #FFBF00;">📡 TARGET WATCHLIST</h3>
-                            <div id="watchlist-content" style="max-height: 180px; overflow-y: auto; font-size: 11px;">Scanning regional activity...</div>
-                        </div>
-
-                        <div style="padding: 15px; background: #010409;">
-                            <input type="text" id="intel-search" placeholder="Search Global News..." 
-                                   style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box; font-size: 12px;">
-                        </div>
-
-                        <div id="intel-feed" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
-                            <p style="color: #8b949e; font-size: 12px;">Syncing global feeds...</p>
-                        </div>
-                    </div>
-
-                    <div id="ticker-container">
-                        <div id="ticker-content">INITIALIZING GLOBAL INTEL FEED... /// STANDBY FOR MULTI-SOURCE SYNC...</div>
                     </div>
 
                     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
