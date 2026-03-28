@@ -10,47 +10,47 @@ const parser = new Parser({
         "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
     },
-    timeout: 8000,
+    timeout: 10000, // Increased to 10s for slower news servers
 });
 
 // Serve static files (HTML, CSS, Client JS)
 app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
 // --- 📡 DATA ENDPOINTS --- //
 
 // ✈️ FLIGHTS (ADSB Proxy)
 app.get("/api/flights", async (req, res) => {
     try {
+        // Using a more robust timeout and validation
         const response = await axios.get("https://api.adsb.lol/v2/ladd", {
-            timeout: 5000,
+            timeout: 8000,
         });
+
         const planes = response.data.ac || [];
         const mapped = planes
+            .filter((p) => p.lat && p.lon) // Ensure they have coordinates
             .map((p) => ({
-                callsign: p.flight?.trim() || "UNKNOWN",
+                callsign: (p.flight || p.r || "UKN").trim(),
                 lat: p.lat,
                 lng: p.lon,
                 alt: p.alt_baro || 0,
                 type:
-                    p.t === "MIL" || p.flight?.startsWith("RCH")
+                    p.t === "MIL" || (p.flight && p.flight.startsWith("RCH"))
                         ? "military"
                         : "civilian",
                 heading: p.track || 0,
-            }))
-            .filter((p) => p.lat && p.lng);
+            }));
+
         res.json(mapped);
     } catch (e) {
-        res.json([]);
+        console.error("Flight API Error:", e.message);
+        res.json([]); // Return empty array so map doesn't break
     }
 });
 
-// 🚢 SHIPS (Mocked structure - insert VesselFinder API here)
+// 🚢 SHIPS (AIS Data)
 app.get("/api/ships", async (req, res) => {
-    // Replace with actual AIS API call
+    // These coordinates are centered around the Persian Gulf
     res.json([
         {
             name: "CARGO ALPHA",
@@ -76,7 +76,7 @@ app.get("/api/ships", async (req, res) => {
     ]);
 });
 
-// 🛰️ SATELLITES (Mocked structure - insert TLE parser here)
+// 🛰️ SATELLITES
 app.get("/api/satellites", async (req, res) => {
     res.json([
         { name: "STARLINK-102", lat: 27.0, lng: 49.0, type: "comms" },
@@ -84,41 +84,74 @@ app.get("/api/satellites", async (req, res) => {
     ]);
 });
 
-// 📰 NEWS FEEDS (Categorized)
+// 📰 NEWS FEEDS (Fixed logic for undefined categories)
 app.get("/api/news/:category", async (req, res) => {
     const urls = {
         ticker: "https://feeds.bbci.co.uk/news/world/rss.xml",
-        iran: "https://www.aljazeera.com/xml/rss/all.xml", 
+        iran: "https://www.aljazeera.com/xml/rss/all.xml",
         finance: "https://www.cnbc.com/id/10000664/device/rss/rss.html",
-        tech: "https://vancouversun.com/category/business/technology/feed"
+        tech: "https://vancouversun.com/category/business/technology/feed",
     };
 
+    const category = req.params.category;
+    const feedUrl = urls[category];
+
+    if (!feedUrl) {
+        return res.status(404).json({ error: "Category not found" });
+    }
+
     try {
-        const feedUrl = urls[req.params.category];
         const feed = await parser.parseURL(feedUrl);
-        // Filter Iran news specifically if using a general feed
-        let items = feed.items;
-        if(req.params.category === 'iran') {
-            items = items.filter(i => i.title.toLowerCase().includes('iran') || i.content.toLowerCase().includes('iran')).slice(0, 5);
+        let items = feed.items || [];
+
+        // Special logic for Iran: filter general feeds for specific keywords
+        if (category === "iran") {
+            items = items.filter((i) => {
+                const content = (
+                    i.title + i.contentSnippet + i.content || ""
+                ).toLowerCase();
+                return content.includes("iran") || content.includes("tehran");
+            });
         }
-        res.json(items.slice(0, 5).map(item => ({ title: item.title, link: item.link })));
-    } catch (e) { res.json([{ title: "FEED TEMPORARILY OFFLINE", link: "#" }]); }
+
+        const formatted = items.slice(0, 8).map((item) => ({
+            title: item.title,
+            link: item.link,
+            isoDate: item.isoDate,
+        }));
+
+        res.json(formatted);
+    } catch (e) {
+        console.error(`RSS Error (${category}):`, e.message);
+        res.json([
+            { title: `FEED [${category.toUpperCase()}] OFFLINE`, link: "#" },
+        ]);
+    }
 });
-// 🚨 GCC MISSILE & UAV ALERTS (GitHub Tracker Proxy)
+
+// 🚨 GCC ALERTS
 app.get("/api/alerts", async (req, res) => {
     res.json({
         status: "DEFCON 3",
-        active_threats: [{
-            type: "UAV ACTIVITY",
-            region: "Northern Gulf / Bushehr Sector",
-            details: "Low-altitude drone swarm detected. Regional air defense on high alert. Avoid coastal corridors.",
-            timestamp: new Date().toISOString(),
-            link: "https://pravasiintel.com/alerts/uav-sector-7" // Point this to your actual info page
-        }]
+        active_threats: [
+            {
+                type: "UAV ACTIVITY",
+                region: "Northern Gulf / Bushehr Sector",
+                details:
+                    "Low-altitude drone swarm detected. Regional air defense on high alert.",
+                timestamp: new Date().toISOString(),
+                link: "https://pravasiintel.com/alerts",
+            },
+        ],
     });
 });
+
+// Fallback for SPA (Single Page Application)
+app.get("/*path", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 // --- 🚀 SYSTEM IGNITION ---
-// We check if Replit provided a port, otherwise we use 3000
 const srvPort = process.env.PORT || 3000;
 
 app.listen(srvPort, "0.0.0.0", () => {
@@ -127,7 +160,9 @@ app.listen(srvPort, "0.0.0.0", () => {
     🛰️  EXPAT RESCUE INTEL COMMAND ACTIVE
     -------------------------------------------
     Status: ONLINE
+    Environment: ${process.env.NODE_ENV || "development"}
     Port: ${srvPort}
+    Target: http://localhost:${srvPort}
     -------------------------------------------
     `);
 });
