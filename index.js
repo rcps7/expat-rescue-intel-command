@@ -4,7 +4,7 @@
     const fr24 = require('flightradar24-client');
 
     const app = express();
-    const PORT = 3000;
+    const PORT = 5000;
     const parser = new Parser();
 // At the top of index.js, ensure you have axios or use the native fetch if on Node 18+
     const axios = require('axios');
@@ -60,7 +60,6 @@ app.get('/api/intel', async (req, res) => {
     ];
 
     try {
-        // Fetch all sources simultaneously
         const feedPromises = sources.map(source => 
             parser.parseURL(source.url).then(feed => 
                 feed.items.map(item => ({
@@ -68,33 +67,32 @@ app.get('/api/intel', async (req, res) => {
                     url: item.link,
                     domain: source.name
                 }))
-            ).catch(e => {
-                console.log(`${source.name} failed`);
-                return []; // If one fails, others still work
-            })
+            ).catch(() => []) // If one source is down, the rest continue
         );
 
         const results = await Promise.all(feedPromises);
-        // Flatten the array and take the top 15 latest items
         const combinedFeed = results.flat().slice(0, 15);
+
+        // Ensure your Threat Scanner still checks this feed
+        if (typeof scanForThreats === "function") scanForThreats(combinedFeed);
 
         res.json(combinedFeed);
     } catch (error) {
-        res.json([{ title: "PRIMARY INTEL LINKS INTERRUPTED - CHECKING BACKUP" }]);
+        res.json([{ title: "PRIMARY INTEL LINKS INTERRUPTED - STANDBY" }]);
     }
 });
 
-    // Keep the server alive
-    app.listen(PORT, () => {
-        console.log(`🚀 Pravasi Command Center Active on Port ${PORT}`);
-    });
 // New "Heartbeat" route to check internet connectivity
     app.get('/api/status', async (req, res) => {
     try {
-        // We ping a rock-solid server (Google) to check our outbound internet
         await axios.get('https://www.google.com', { timeout: 2000 });
         res.json({ internet: "ONLINE", timestamp: new Date().toLocaleTimeString() });
     } catch (e) {
         res.json({ internet: "OFFLINE", error: e.message });
     }
 });
+
+    // Keep the server alive
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 Pravasi Command Center Active on Port ${PORT}`);
+    });

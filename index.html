@@ -6,6 +6,53 @@
     <title>Pravasi Intel Dashboard | Tactical Command</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
+        /* Larger touch targets for mobile */
+        @media (max-width: 768px) {
+            .flight-icon {
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-bottom: 20px solid; /* Larger triangles for fingers */
+            }
+        }
+        /* --- TACTICAL TRIANGLE ICONS --- */
+        .flight-icon {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 16px solid; /* The color is set via JS */
+            transition: transform 0.5s;
+        }
+
+        .flight-icon-normal { border-bottom-color: #00ff00; } /* Green */
+        .flight-icon-military { border-bottom-color: #ff8c00; } /* Orange */
+
+        /* --- MOBILE RESPONSIVENESS (iPhone 17 Optimized) --- */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column; /* Stack sidebars on top of each other */
+                overflow-y: auto;
+            }
+
+            .sidebar {
+                width: 100% !important;
+                height: auto !important;
+                max-height: 400px;
+            }
+
+            #map {
+                height: 50vh !important; /* Give the map half the screen on mobile */
+                width: 100%;
+            }
+
+            #left-sidebar { order: 2; } /* Notes come after the map */
+            #right-sidebar { order: 3; } /* News at the bottom */
+
+            .sidebar-header {
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+        }
         /* --- CORE LAYOUT --- */
         body {
             margin: 0;
@@ -133,6 +180,15 @@
                 <button onclick="clearSitrep()" style="flex: 1; background: #30363d; color: #8b949e; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">CLEAR</button>
             </div>
         </div>
+        <div class="panel-section" style="background: rgba(0, 88, 255, 0.05);">
+            <h3 style="color: #58a6ff;">🚢 NAVAL INTEL (OBKM)</h3>
+            <div id="marine-traffic-box" style="width: 100%; height: 200px; border: 1px solid #30363d; border-radius: 4px; overflow: hidden;">
+                <iframe name="marinetraffic" id="marinetraffic" width="100%" height="200" 
+                        src="https://www.marinetraffic.com/en/ais/embed/zoom:10/centery:26.2/centerx:50.6/maptype:7/shownames:false/mmsi:0/shipid:0/fleet:/fleet_id:/vsl_type:/show_menu:false/remember:false/get_it:false" 
+                        frameborder="0"></iframe>
+            </div>
+            <p style="font-size: 9px; color: #8b949e; margin-top: 5px;">*AIS Tracking active for Khalifa Bin Salman Port*</p>
+        </div>
 
         <div id="intercept-log-container" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -164,7 +220,7 @@
             <h3 style="color: #FFBF00;">📡 TARGET WATCHLIST</h3>
             <div id="watchlist-content" style="max-height: 180px; overflow-y: auto; font-size: 11px;">Scanning regional activity...</div>
         </div>
-
+        
         <div style="padding: 15px; background: #010409;">
             <input type="text" id="intel-search" placeholder="Search Global News..." 
                    style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box; font-size: 12px;">
@@ -265,6 +321,20 @@
 
             // 3. Flight Logic + HOVER POPUP
 
+            function createFlightIcon(flightData) {
+                const callsign = (flightData.callsign || "").trim();
+                const militaryPrefixes = ['RCH', 'RRR', 'ASY', 'CFC', 'HAF', 'IAM', 'BAF', 'RSF'];
+                const isMilitary = militaryPrefixes.some(prefix => callsign.startsWith(prefix));
+                const iconClass = isMilitary ? 'flight-icon-military' : 'flight-icon-normal';
+                const rotation = flightData.track || 0;
+                return L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="flight-icon ${iconClass}" style="transform: rotate(${rotation}deg);"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                });
+            }
+
             async function updateFlights() {
 
                 try {
@@ -275,74 +345,31 @@
 
                     const watchlist = document.getElementById('watchlist-content');
 
-
-
                     if (data.states) {
 
                         planesGroup.clearLayers();
 
                         let alertsHtml = "";
 
-
-
                         data.states.forEach(p => {
 
-                            const dot = L.circleMarker([p.lat, p.lng], {
+                            if (!p.lat || !p.lng) return;
 
-                                radius: p.emergency ? 8 : 4,
+                            const dot = L.marker([p.lat, p.lng], { icon: createFlightIcon(p) }).addTo(planesGroup);
 
-                                color: p.emergency ? '#ff0000' : '#FFBF00',
+                            const popupContent = `<div style="font-size:12px;"><b>ID:</b> ${p.callsign}<br><b>ALT:</b> ${p.alt} FT<br><b>STATUS:</b> ${p.emergency ? 'EMERGENCY' : 'NORMAL'}</div>`;
 
-                                fillColor: p.emergency ? '#ff0000' : '#FFBF00',
-
-                                fillOpacity: 0.8,
-
-                                weight: 1
-
-                            }).addTo(planesGroup);
-
-
-
-                            // HOVER POPUP LOGIC
-
-                            const popupContent = `
-
-                                <div style="font-size:12px;">
-
-                                    <b>ID:</b> ${p.callsign}<br>
-
-                                    <b>ALT:</b> ${p.alt} FT<br>
-
-                                    <b>STATUS:</b> ${p.emergency ? 'EMERGENCY' : 'NORMAL'}
-
-                                </div>
-
-                            `;
-
-
-
-                            // Show on Mouseover, Hide on Mouseout
-
-                            dot.on('mouseover', function (e) {
-
+                            dot.on('mouseover', function () {
                                 this.bindPopup(popupContent).openPopup();
-
                             });
 
-                            dot.on('mouseout', function (e) {
-
+                            dot.on('mouseout', function () {
                                 this.closePopup();
-
                             });
-
-
 
                             if (p.emergency || p.gulfAlert) {
-
                                 const alertClass = p.emergency ? 'alert-item alert-emergency' : 'alert-item';
-
                                 alertsHtml += `<div class="${alertClass}"><strong>${p.emergency ? '⚠️ EMERGENCY' : '📍 GULF ZONE'}</strong><br>${p.callsign} | ${p.alt} ft</div>`;
-
                             }
 
                         });
@@ -566,6 +593,13 @@
             }
 
 
+
+            // Function to save SITREP notes
+
+            function saveSitrep() {
+                const text = document.getElementById('sitrep-input').value;
+                localStorage.setItem('pravasi_sitrep', text);
+            }
 
             // Function to clear the SITREP pad
 
