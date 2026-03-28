@@ -4,7 +4,7 @@
     const fr24 = require('flightradar24-client');
 
     const app = express();
-    const PORT = 5000;
+    const PORT = 3000;
     const parser = new Parser();
 // At the top of index.js, ensure you have axios or use the native fetch if on Node 18+
     const axios = require('axios');
