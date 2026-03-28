@@ -26,17 +26,13 @@ app.get("/api/weather-key", (req, res) => {
 // 🚢 NAVAL TRAFFIC ROUTE
 app.get("/api/naval", async (req, res) => {
     try {
-        // We use a public AIS proxy or a scraped feed for regional Gulf traffic
-        // NOTE: Replace YOUR_KEY with an actual API key if using VesselFinder
-        const response = await axios.get("https://api.vesselfinder.com/vessels?bbox=48,24,52,28&userkey=YOUR_KEY", { timeout: 5000 });
-
-        // If the API requires specific mapping to match the frontend, do it here.
-        // The frontend expects: lat, lng, name, type, dest
-        res.json(response.data);
-    } catch (e) {
-        console.log("Naval feed offline or missing key. Returning empty radar.");
-        res.json([]); // Return empty if feed is jammed or key is missing
-    }
+        // If you don't have a VesselFinder Key yet, use this mock data to verify your frontend map works
+        const mockShips = [
+            { name: "MT ARABIAN STAR", lat: 26.2, lng: 50.7, type: "Tanker", dest: "Khalifa Port" },
+            { name: "USS ABRAHAM LINCOLN", lat: 25.5, lng: 52.1, type: "Military", dest: "Patrol" }
+        ];
+        res.json(mockShips); 
+    } catch (e) { res.json([]); }
 });
 
 // ✈️ ROBUST FLIGHT ROUTE (ADSB)
@@ -75,40 +71,25 @@ app.get("/api/planes", async (req, res) => {
 
 // 📡 GLOBAL INTEL FEED (RSS MULTI-SYNC)
 app.get("/api/intel", async (req, res) => {
+    const parser = new Parser({
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+    });
+
     const sources = [
-        { name: "BBC WORLD", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
-        { name: "FIRST POST", url: "https://www.firstpost.com/commonfeeds/v1/mfp/rss/world.xml" },
-        { name: "UPI NEWS", url: "https://rss.upi.com/news/news.rss" }
+        { name: "BBC", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
+        { name: "FIRST POST", url: "https://www.firstpost.com/rss/world.xml" }
     ];
 
     try {
-        const feedPromises = sources.map(source => 
-            parser.parseURL(source.url).then(feed => 
-                feed.items.map(item => ({
-                    title: `[${source.name}] ${item.title}`,
-                    url: item.link,
-                    domain: source.name
-                }))
-        ).catch((err) => {
-                // ADD THIS LOG TO YOUR CONSOLE:
-                console.error(`🚨 FEED FAILED: ${source.name} - Reason: ${err.message}`);
-                return []; 
-            })
+        const feedPromises = sources.map(s => 
+            parser.parseURL(s.url).then(f => f.items.map(i => ({
+                title: `[${s.name}] ${i.title}`,
+                url: i.link
+            }))).catch(() => [])
         );
-
         const results = await Promise.all(feedPromises);
-        const combinedFeed = results.flat().slice(0, 15); // Send top 15 articles
-
-        // Safety check: Only run scanForThreats if you have actually defined it elsewhere
-        if (typeof scanForThreats === "function") {
-            scanForThreats(combinedFeed);
-        }
-
-        res.json(combinedFeed);
-    } catch (error) {
-        console.log("Intel feed error:", error.message);
-        res.json([{ title: "PRIMARY INTEL LINKS INTERRUPTED - STANDBY", url: "#" }]);
-    }
+        res.json(results.flat().slice(0, 15));
+    } catch (e) { res.json([]); }
 });
 
 // 🟢 SYSTEM HEARTBEAT
