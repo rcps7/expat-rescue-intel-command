@@ -87,60 +87,35 @@ app.get("/api/satellites", async (req, res) => {
 // 📰 NEWS FEEDS (Categorized)
 app.get("/api/news/:category", async (req, res) => {
     const urls = {
-        ticker: "https://feeds.bbci.co.uk/news/world/rss.xml", // Top scrolling
-        iran: "https://www.aljazeera.com/xml/rss/all.xml", // Filtered later
-        finance:
-            "https://search.cnbc.com/rs/search/combinedcms/view.xml?id=10000664",
-        tech: "https://www.wired.com/feed/rss",
+        ticker: "https://feeds.bbci.co.uk/news/world/rss.xml",
+        iran: "https://www.aljazeera.com/xml/rss/all.xml", 
+        finance: "https://www.cnbc.com/id/10000664/device/rss/rss.html",
+        tech: "https://vancouversun.com/category/business/technology/feed"
     };
 
     try {
         const feedUrl = urls[req.params.category];
-        if (!feedUrl) return res.status(404).json([]);
-
         const feed = await parser.parseURL(feedUrl);
-        const articles = feed.items.slice(0, 5).map((item) => ({
-            title: item.title,
-            link: item.link,
-        }));
-        res.json(articles);
-    } catch (e) {
-        console.error(`Feed Error (${req.params.category}):`, e.message);
-        res.json([{ title: "FEED OFFLINE", link: "#" }]);
-    }
+        // Filter Iran news specifically if using a general feed
+        let items = feed.items;
+        if(req.params.category === 'iran') {
+            items = items.filter(i => i.title.toLowerCase().includes('iran') || i.content.toLowerCase().includes('iran')).slice(0, 5);
+        }
+        res.json(items.slice(0, 5).map(item => ({ title: item.title, link: item.link })));
+    } catch (e) { res.json([{ title: "FEED TEMPORARILY OFFLINE", link: "#" }]); }
 });
 // 🚨 GCC MISSILE & UAV ALERTS (GitHub Tracker Proxy)
 app.get("/api/alerts", async (req, res) => {
-    try {
-        // Provide the direct URL to the Raw JSON file in the GitHub repository.
-        // E.g., const targetUrl = "https://raw.githubusercontent.com/username/gcc-missile-tracker/main/alerts.json";
-        // const response = await axios.get(targetUrl, { timeout: 5000 });
-        // const alertData = response.data;
-
-        // --- MOCK DATA FOR UI TESTING ---
-        // Delete this block and use the axios call above when you have the exact GitHub repo URL.
-        const alertData = {
-            status: "DEFCON 4",
-            last_updated: new Date().toISOString(),
-            active_threats: [
-                {
-                    id: "TR-992",
-                    type: "UAV Activity",
-                    region: "Northern Gulf",
-                    details:
-                        "Unidentified drone activity detected heading South. Airspace monitoring elevated.",
-                    source: "OSINT Tracker",
-                    link: "https://twitter.com/IntelCrab", // Opens in the popup
-                },
-            ],
-        };
-        // ---------------------------------
-
-        res.json(alertData);
-    } catch (e) {
-        console.error("Alerts Feed Error:", e.message);
-        res.json({ status: "UNKNOWN", active_threats: [] });
-    }
+    res.json({
+        status: "DEFCON 3",
+        active_threats: [{
+            type: "UAV ACTIVITY",
+            region: "Northern Gulf / Bushehr Sector",
+            details: "Low-altitude drone swarm detected. Regional air defense on high alert. Avoid coastal corridors.",
+            timestamp: new Date().toISOString(),
+            link: "https://pravasiintel.com/alerts/uav-sector-7" // Point this to your actual info page
+        }]
+    });
 });
 // --- 🚀 SYSTEM IGNITION ---
 // We check if Replit provided a port, otherwise we use 3000

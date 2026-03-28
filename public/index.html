@@ -4,14 +4,11 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>EXPAT RESCUE INTEL COMMAND</title>
-        <link
-            rel="stylesheet"
-            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <style>
             :root {
                 --bg-dark: #050505;
-                --panel-bg: rgba(10, 15, 10, 0.85);
+                --panel-bg: rgba(10, 15, 10, 0.9);
                 --neon-green: #39ff14;
                 --alert-red: #ff2a2a;
                 --mil-orange: #ffaa00;
@@ -19,237 +16,98 @@
             }
 
             body {
-                margin: 0;
-                padding: 0;
+                margin: 0; padding: 0;
                 background: var(--bg-dark);
                 color: var(--neon-green);
                 font-family: "Courier New", monospace;
                 overflow: hidden;
             }
 
-            /* --- LAYOUT GRID --- */
-            #app-container {
-                display: flex;
-                flex-direction: column;
-                height: 100vh;
-            }
+            #app-container { display: flex; flex-direction: column; height: 100vh; }
 
-            /* Top Bar */
+            /* --- TOP BAR FIX (Weather Visibility) --- */
             #top-bar {
-                height: 40px;
+                height: 45px;
                 display: flex;
                 align-items: center;
+                justify-content: space-between; /* Ensures weather stays right */
                 border-bottom: var(--border);
                 background: var(--panel-bg);
                 z-index: 1000;
             }
-            #clock {
-                padding: 0 15px;
-                border-right: var(--border);
-                font-weight: bold;
-            }
-            #ticker-wrap {
-                flex-grow: 1;
-                overflow: hidden;
-                white-space: nowrap;
-            }
-            #ticker {
-                display: inline-block;
-                animation: scrollLeft 30s linear infinite;
-                padding-left: 100%;
-            }
+            #clock { padding: 0 15px; border-right: var(--border); font-weight: bold; min-width: 120px; }
+            #ticker-wrap { flex-grow: 1; overflow: hidden; white-space: nowrap; margin: 0 20px; }
+            #ticker { display: inline-block; animation: scrollLeft 40s linear infinite; }
+            .weather-display { padding: 0 15px; color: yellow; font-weight: bold; white-space: nowrap; flex-shrink: 0; }
 
-            /* Map Area */
-            #map-container {
-                flex-grow: 1;
-                position: relative;
-            }
-            #map {
-                width: 100%;
-                height: 100%;
-                background: #000;
-            }
-            /* Tactical Map Filter */
-            .leaflet-layer,
-            .leaflet-control-zoom-in,
-            .leaflet-control-zoom-out,
-            .leaflet-control-attribution {
-                filter: invert(100%) hue-rotate(180deg) brightness(95%)
-                    contrast(120%);
-            }
-
-            /* Absolute Floating Elements */
+            /* --- MAP AREA --- */
+            #map-container { flex-grow: 1; position: relative; background: #000; }
+            #map { width: 100%; height: 100%; }
             #title-overlay {
-                position: absolute;
-                top: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                z-index: 1000;
-                font-size: 24px;
-                font-weight: bold;
-                text-shadow: 0 0 10px var(--neon-green);
-                pointer-events: none;
+                position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+                z-index: 1000; font-size: 22px; font-weight: bold;
+                text-shadow: 0 0 10px var(--neon-green); pointer-events: none;
             }
 
+            /* --- PANELS --- */
             .floating-panel {
-                position: absolute;
-                top: 50%;
-                transform: translateY(-50%);
-                background: var(--panel-bg);
-                border: var(--border);
-                padding: 15px;
-                z-index: 1000;
-                max-height: 60%;
-                overflow-y: auto;
-                box-shadow: 0 0 15px rgba(57, 255, 20, 0.1);
+                position: absolute; top: 50%; transform: translateY(-50%);
+                background: var(--panel-bg); border: var(--border);
+                padding: 10px; z-index: 1000; max-height: 70%; overflow-y: auto;
             }
-            #mission-log {
-                left: 10px;
-                width: 250px;
+            #mission-log { left: 10px; width: 280px; }
+            #layer-controls { right: 10px; width: 180px; }
+            
+            #log-entries div { 
+                margin-bottom: 8px; border-bottom: 1px solid #1a331a; 
+                padding-bottom: 4px; font-size: 11px; cursor: pointer;
             }
-            #layer-controls {
-                right: 10px;
-                width: 200px;
-            }
+            #log-entries div:hover { background: rgba(57, 255, 20, 0.1); }
 
-            /* Bottom Columns */
-            #bottom-panel {
-                height: 150px;
-                display: flex;
-                border-top: var(--border);
-                background: var(--panel-bg);
-                z-index: 1000;
-            }
-            .data-col {
-                flex: 1;
-                border-right: var(--border);
-                padding: 10px;
-                overflow-y: auto;
-                font-size: 12px;
-            }
-            .data-col h3 {
-                margin-top: 0;
-                border-bottom: 1px solid var(--neon-green);
-                padding-bottom: 5px;
-                text-align: center;
-            }
-            .news-item {
-                cursor: pointer;
-                margin-bottom: 5px;
-                display: block;
-                color: inherit;
-                text-decoration: none;
-            }
-            .news-item:hover {
-                background: #1a331a;
-            }
+            /* --- BOTTOM DATA GRID --- */
+            #bottom-panel { height: 180px; display: flex; border-top: var(--border); background: var(--panel-bg); }
+            .data-col { flex: 1; border-right: var(--border); padding: 10px; overflow-y: auto; font-size: 12px; }
+            .data-col h3 { margin: 0 0 10px 0; border-bottom: 1px solid var(--neon-green); text-align: center; font-size: 14px; }
+            .news-item { cursor: pointer; margin-bottom: 6px; display: block; color: #fff; text-decoration: none; }
+            .news-item:hover { color: var(--neon-green); background: #1a331a; }
 
-            /* --- MARKERS --- */
+            /* --- TACTICAL MARKERS --- */
             /* Flight: Triangle */
             .marker-flight {
-                width: 0;
-                height: 0;
-                border-left: 8px solid transparent;
-                border-right: 8px solid transparent;
-                border-bottom: 16px solid var(--neon-green);
-                opacity: 0.8;
+                width: 0; height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-bottom: 20px solid var(--neon-green);
+                filter: drop-shadow(0 0 5px var(--neon-green));
             }
-            .flight-mil {
-                border-bottom-color: var(--mil-orange);
-            }
+            .flight-mil { border-bottom-color: var(--mil-orange); }
 
             /* Ship: Rectangle */
             .marker-ship {
-                width: 8px;
-                height: 16px;
+                width: 12px; height: 20px;
                 background: #00ffff;
                 border: 1px solid #000;
+                box-shadow: 0 0 5px #00ffff;
             }
-            .ship-mil {
-                background: var(--mil-orange);
-            }
-            .ship-cargo {
-                background: #aaaaaa;
-            }
+            .ship-mil { background: var(--mil-orange); }
 
-            /* Satellite: Circle */
-            .marker-sat {
-                width: 10px;
-                height: 10px;
-                background: #ff00ff;
-                border-radius: 50%;
-                box-shadow: 0 0 5px #ff00ff;
-            }
-
-            /* Modal */
-            #disclaimer {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.9);
-                z-index: 9999;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-            .modal-content {
-                background: #111;
-                border: 2px solid var(--neon-green);
-                padding: 30px;
-                text-align: center;
-                max-width: 500px;
-            }
-            button {
-                background: transparent;
-                color: var(--neon-green);
-                border: 1px solid var(--neon-green);
-                padding: 10px 20px;
-                cursor: pointer;
-                font-family: inherit;
-                margin-top: 15px;
-            }
-            button:hover {
-                background: var(--neon-green);
-                color: #000;
-            }
-
-            @keyframes scrollLeft {
-                0% {
-                    transform: translateX(0);
-                }
-                100% {
-                    transform: translateX(-100%);
-                }
-            }
+            @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
         </style>
     </head>
     <body>
         <div id="disclaimer">
-            <div class="modal-content">
-                <h2>⚠️ CLASSIFIED SYSTEM ACCESSED</h2>
-                <p>
-                    This system aggregates open-source intelligence. Data may be
-                    delayed. Do not use for navigation.
-                </p>
-                <button
-                    onclick="document.getElementById('disclaimer').style.display='none'"
-                >
-                    I ACCEPT TERMS
-                </button>
+            <div class="modal-content" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+                <h2 style="color:var(--alert-red)">⚠️ CLASSIFIED OSINT SYSTEM</h2>
+                <p style="max-width:500px">ACCESS AUTHORIZED FOR DR. ROOPCHAND. DATA AGGREGATED FROM GCC TACTICAL SOURCES. DO NOT USE FOR PRIMARY NAVIGATION.</p>
+                <button style="background:none; border:1px solid var(--neon-green); color:var(--neon-green); padding:10px 30px; cursor:pointer;" onclick="document.getElementById('disclaimer').style.display='none'">INITIALIZE UPLINK</button>
             </div>
         </div>
 
         <div id="app-container">
             <div id="top-bar">
                 <div id="clock">00:00:00 AST</div>
-                <div id="ticker-wrap">
-                    <div id="ticker">STANDBY... INITIALIZING DATALINKS...</div>
-                </div>
-                <div style="padding: 0 15px; color: yellow">
-                    WEATHER: 32°C / CLEAR
-                </div>
+                <div id="ticker-wrap"><div id="ticker">ESTABLISHING ENCRYPTED DATALINK... STANDBY...</div></div>
+                <div class="weather-display">BAHRAIN: 32°C / CLEAR</div>
             </div>
 
             <div id="map-container">
@@ -263,258 +121,131 @@
 
                 <div id="layer-controls" class="floating-panel">
                     <h3>LAYERS</h3>
-                    <label
-                        ><input type="checkbox" checked id="layer-flights" /> ✈️
-                        FLIGHTS</label
-                    ><br />
-                    <label
-                        ><input type="checkbox" checked id="layer-ships" /> 🚢
-                        SHIPS</label
-                    ><br />
-                    <label
-                        ><input type="checkbox" checked id="layer-sats" /> 🛰️
-                        SATELLITES</label
-                    ><br />
-                    <label
-                        ><input type="checkbox" id="layer-weather" /> ⛈️
-                        CLIMATE</label
-                    >
+                    <label><input type="checkbox" checked id="layer-flights" /> ✈️ FLIGHTS</label><br />
+                    <label><input type="checkbox" checked id="layer-ships" /> 🚢 SHIPS</label><br />
+                    <label><input type="checkbox" id="layer-weather" /> ⛈️ CLIMATE</label>
                 </div>
             </div>
 
             <div id="bottom-panel">
-                <div class="data-col" id="col-iran">
-                    <h3>IRAN TENSIONS</h3>
-                    Loading...
-                </div>
-                <div class="data-col" id="col-finance">
-                    <h3>GLOBAL FINANCE</h3>
-                    Loading...
-                </div>
-                <div class="data-col" id="col-tech">
-                    <h3>CYBER / TECH</h3>
-                    Loading...
-                </div>
-                <div class="data-col" id="col-alerts">
-                    <h3>GCC ALERTS</h3>
-                    <span style="color: var(--alert-red)"
-                        >No active ballistic threats detected.</span
-                    >
-                </div>
+                <div class="data-col" id="col-iran"><h3>IRAN TENSIONS</h3><div class="content">Loading...</div></div>
+                <div class="data-col" id="col-finance"><h3>GLOBAL FINANCE</h3><div class="content">Loading...</div></div>
+                <div class="data-col" id="col-tech"><h3>CYBER / TECH</h3><div class="content">Loading...</div></div>
+                <div class="data-col" id="col-alerts"><h3>GCC ALERTS</h3><div class="content">No threats detected.</div></div>
             </div>
         </div>
 
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
-            // --- 1. INITIALIZE MAP (Centered on the Gulf) ---
-            const map = L.map("map", { zoomControl: true }).setView(
-                [26.2, 50.6],
-                6,
-            );
+            // --- 1. INITIALIZE MAP (English Labels + Dark Theme) ---
+            const map = L.map("map").setView([26.2, 50.6], 6);
 
-            // Base Map (OpenStreetMap)
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: "Map data © OpenStreetMap",
+            // Using CartoDB Dark Matter for English labels and tactical look
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO'
             }).addTo(map);
 
-            // Weather Layer (OpenWeatherMap Precipitation/Storms)
-            // Note: Needs API key for production
-            const weatherLayer = L.tileLayer(
-                "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=YOUR_OWM_KEY",
-                { opacity: 0.6 },
-            );
-
-            // Layer Groups to toggle data easily
             const layers = {
                 flights: L.layerGroup().addTo(map),
                 ships: L.layerGroup().addTo(map),
-                sats: L.layerGroup().addTo(map),
+                weather: L.tileLayer("https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=f40cc357f6be024566a0c703c7320ea6")
             };
 
-            // --- 2. CLOCK & LOGGING ---
-            setInterval(() => {
-                document.getElementById("clock").innerText =
-                    new Date().toLocaleTimeString("en-US", {
-                        timeZone: "Asia/Riyadh",
-                    }) + " AST";
-            }, 1000);
-
-            function addLog(msg) {
+            // --- 2. TACTICAL LOGGING ---
+            function addLog(msg, link = null) {
                 const log = document.getElementById("log-entries");
-                log.innerHTML =
-                    `<div style="margin-bottom:5px;">[${new Date().toLocaleTimeString()}] ${msg}</div>` +
-                    log.innerHTML;
+                const entry = document.createElement("div");
+                entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+                if (link) {
+                    entry.style.color = "var(--alert-red)";
+                    entry.style.fontWeight = "bold";
+                    entry.onclick = () => window.open(link, 'popup', 'width=800,height=600');
+                }
+                log.prepend(entry);
             }
 
-            // --- 3. FETCH & DRAW DATA ---
-
-            // Flights (Triangles)
-            async function fetchFlights() {
-                if (!document.getElementById("layer-flights").checked) return;
+            // --- 3. DATA FETCHING ---
+            async function updateRadar() {
                 try {
-                    const res = await fetch("/api/flights");
-                    const data = await res.json();
+                    // Flights
+                    const fRes = await fetch("/api/flights");
+                    const flights = await fRes.json();
                     layers.flights.clearLayers();
-
-                    data.forEach((f) => {
-                        const iconClass =
-                            f.type === "military"
-                                ? "marker-flight flight-mil"
-                                : "marker-flight";
+                    flights.forEach(f => {
                         const icon = L.divIcon({
-                            className: iconClass,
-                            iconSize: [16, 16],
-                            html: `<div style="transform: rotate(${f.heading}deg);"></div>`,
+                            className: f.type === 'military' ? 'marker-flight flight-mil' : 'marker-flight',
+                            iconSize: [20, 20],
+                            html: `<div style="transform: rotate(${f.heading}deg)"></div>`
                         });
-                        L.marker([f.lat, f.lng], { icon })
-                            .bindTooltip(
-                                `<b>${f.callsign}</b><br>Alt: ${f.alt}ft<br>Type: ${f.type.toUpperCase()}`,
-                            )
-                            .addTo(layers.flights);
+                        L.marker([f.lat, f.lng], { icon }).bindTooltip(f.callsign).addTo(layers.flights);
                     });
-                } catch (e) {
-                    addLog("Flight feed error.");
-                }
-            }
 
-            // Ships (Rectangles)
-            async function fetchShips() {
-                if (!document.getElementById("layer-ships").checked) return;
-                try {
-                    const res = await fetch("/api/ships");
-                    const data = await res.json();
+                    // Ships
+                    const sRes = await fetch("/api/ships");
+                    const ships = await sRes.json();
                     layers.ships.clearLayers();
-
-                    data.forEach((s) => {
-                        let iconClass = "marker-ship";
-                        if (s.type === "military") iconClass += " ship-mil";
-                        if (s.type === "cargo") iconClass += " ship-cargo";
+                    ships.forEach(s => {
                         const icon = L.divIcon({
-                            className: iconClass,
-                            iconSize: [8, 16],
+                            className: s.type === 'military' ? 'marker-ship ship-mil' : 'marker-ship',
+                            iconSize: [12, 20]
                         });
-                        L.marker([s.lat, s.lng], { icon })
-                            .bindTooltip(
-                                `<b>${s.name}</b><br>Type: ${s.type.toUpperCase()}`,
-                            )
-                            .addTo(layers.ships);
+                        L.marker([s.lat, s.lng], { icon }).bindTooltip(s.name).addTo(layers.ships);
                     });
-                } catch (e) {
-                    addLog("Ship feed error.");
-                }
+
+                    addLog("Radar sweep complete: Gulf Sector Clear.");
+                } catch (e) { addLog("Datalink error: Radar offline."); }
             }
 
-            // --- 4. DATA UPDATER LOOP ---
-            function updateAllData() {
-                fetchFlights();
-                fetchShips();
-                // Add fetchSatellites() here
-                addLog("Radar sweep complete.");
-            }
-
-            setInterval(updateAllData, 10000); // Refresh every 10 seconds
-            updateAllData(); // Initial load
-
-            // --- 5. UI CONTROLS ---
-            document
-                .getElementById("layer-flights")
-                .addEventListener("change", (e) =>
-                    e.target.checked
-                        ? map.addLayer(layers.flights)
-                        : map.removeLayer(layers.flights),
-                );
-            document
-                .getElementById("layer-ships")
-                .addEventListener("change", (e) =>
-                    e.target.checked
-                        ? map.addLayer(layers.ships)
-                        : map.removeLayer(layers.ships),
-                );
-            document
-                .getElementById("layer-weather")
-                .addEventListener("change", (e) =>
-                    e.target.checked
-                        ? map.addLayer(weatherLayer)
-                        : map.removeLayer(weatherLayer),
-                );
-
-            // --- 6. POPULATE NEWS BARS ---
+            // --- 4. NEWS & ALERTS ---
             async function loadNews() {
-                const cols = ["ticker", "finance", "tech"]; // Update Iran/Alerts via specific endpoints
-                for (let category of cols) {
+                const categories = ["ticker", "iran", "finance", "tech"];
+                categories.forEach(async (cat) => {
                     try {
-                        const res = await fetch(`/api/news/${category}`);
+                        const res = await fetch(`/api/news/${cat}`);
                         const articles = await res.json();
-
-                        if (category === "ticker") {
-                            document.getElementById("ticker").innerHTML =
-                                articles
-                                    .map((a) => `${a.title} &nbsp; // &nbsp; `)
-                                    .join("");
+                        if (cat === "ticker") {
+                            document.getElementById("ticker").innerHTML = articles.map(a => `${a.title} &nbsp; // &nbsp; `).join("");
                         } else {
-                            const html = articles
-                                .map(
-                                    (a) =>
-                                        `<a class="news-item" href="${a.link}" target="_blank" onclick="window.open('${a.link}', 'popup', 'width=600,height=600'); return false;">> ${a.title}</a>`,
-                                )
-                                .join("");
-                            document.getElementById(
-                                `col-${category}`,
-                            ).innerHTML =
-                                `<h3>${category.toUpperCase()}</h3>` + html;
+                            const container = document.querySelector(`#col-${cat} .content`);
+                            container.innerHTML = articles.map(a => `
+                                <a class="news-item" href="#" onclick="window.open('${a.link}', 'popup', 'width=800,height=600'); return false;">
+                                    > ${a.title}
+                                </a>`).join("");
                         }
-                    } catch (e) {}
-                }
+                    } catch (e) { console.error(`Failed to load ${cat}`); }
+                });
             }
-            loadNews();
-            setInterval(loadNews, 300000); // Update news every 5 mins
 
-            // --- 7. GCC THREAT ALERTS ---
             async function loadAlerts() {
-                const col = document.getElementById("col-alerts");
+                const container = document.querySelector("#col-alerts .content");
                 try {
                     const res = await fetch("/api/alerts");
                     const data = await res.json();
-
-                    let html = `<h3>GCC ALERTS</h3>`;
-                    html += `<div style="text-align:center; font-size:10px; color:#aaa; margin-bottom:10px;">SYS STATUS: ${data.status}</div>`;
-
-                    // If the array is empty, show a green "CLEAR" status
-                    if (
-                        !data.active_threats ||
-                        data.active_threats.length === 0
-                    ) {
-                        html += `<div style="color:var(--neon-green); text-align:center; margin-top:20px; font-weight:bold;">
-                                [ CLEAR ]<br><span style="font-weight:normal; font-size:11px;">No active ballistic or UAV threats.</span>
-                             </div>`;
-                    } else {
-                        // If threats exist, render them as red tactical blocks
-                        data.active_threats.forEach((threat) => {
-                            html += `
-                            <div style="border:1px solid var(--alert-red); background:rgba(255,42,42,0.1); padding:8px; margin-bottom:8px; cursor:pointer;"
-                                 onclick="window.open('${threat.link}', 'popup', 'width=700,height=500,scrollbars=yes'); return false;"
-                                 title="Click to view full OSINT report">
-                                <strong style="color:var(--alert-red);">⚠️ ${threat.type.toUpperCase()}</strong><br>
-                                <span style="color:#fff; font-size: 11px;">REGION: ${threat.region}</span><br>
-                                <span style="color:#aaa; font-size:10px;">${threat.details}</span>
+                    if (data.active_threats && data.active_threats.length > 0) {
+                        container.innerHTML = data.active_threats.map(t => `
+                            <div style="border:1px solid var(--alert-red); padding:5px; margin-bottom:5px; cursor:pointer;" onclick="window.open('${t.link}', 'popup', 'width=800,height=600')">
+                                <span style="color:var(--alert-red)">⚠️ ${t.type}</span><br><small>${t.region}</small>
                             </div>
-                        `;
-                        });
-
-                        // Log the threat to the Mission Log
-                        addLog(
-                            `⚠️ WARNING: ${data.active_threats.length} active threat(s) detected on OSINT tracker.`,
-                        );
+                        `).join("");
+                        addLog(`THREAT DETECTED: ${data.active_threats[0].type}`, data.active_threats[0].link);
+                    } else {
+                        container.innerHTML = "<span style='color:var(--neon-green)'>[ STATUS: CLEAR ]</span>";
                     }
-
-                    col.innerHTML = html;
-                } catch (e) {
-                    col.innerHTML = `<h3>GCC ALERTS</h3><div style="color:var(--alert-red); text-align:center; margin-top:20px;">[ DATALINK OFFLINE ]</div>`;
-                }
+                } catch (e) { container.innerHTML = "DATALINK OFFLINE"; }
             }
 
-            // Execute on load, then check every 60 seconds
+            // --- 5. INITIALIZE ---
+            setInterval(() => {
+                document.getElementById("clock").innerText = new Date().toLocaleTimeString("en-US", {timeZone: "Asia/Riyadh"}) + " AST";
+            }, 1000);
+
+            document.getElementById("layer-weather").addEventListener("change", e => e.target.checked ? map.addLayer(layers.weather) : map.removeLayer(layers.weather));
+
+            updateRadar();
+            loadNews();
             loadAlerts();
+            setInterval(updateRadar, 15000);
+            setInterval(loadNews, 300000);
             setInterval(loadAlerts, 60000);
         </script>
     </body>
