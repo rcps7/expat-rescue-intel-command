@@ -80,8 +80,53 @@ app.get("/api/news/:category", async (req, res) => {
         res.json([{ title: "FEED OFFLINE", link: "#" }]);
     }
 });
+// 🚨 GCC MISSILE & UAV ALERTS (GitHub Tracker Proxy)
+app.get("/api/alerts", async (req, res) => {
+    try {
+        // Provide the direct URL to the Raw JSON file in the GitHub repository.
+        // E.g., const targetUrl = "https://raw.githubusercontent.com/username/gcc-missile-tracker/main/alerts.json";
+        // const response = await axios.get(targetUrl, { timeout: 5000 });
+        // const alertData = response.data;
+
+        // --- MOCK DATA FOR UI TESTING ---
+        // Delete this block and use the axios call above when you have the exact GitHub repo URL.
+        const alertData = {
+            status: "DEFCON 4",
+            last_updated: new Date().toISOString(),
+            active_threats: [
+                {
+                    id: "TR-992",
+                    type: "UAV Activity",
+                    region: "Northern Gulf",
+                    details: "Unidentified drone activity detected heading South. Airspace monitoring elevated.",
+                    source: "OSINT Tracker",
+                    link: "https://twitter.com/IntelCrab" // Opens in the popup
+                }
+            ]
+        };
+        // ---------------------------------
+
+        res.json(alertData);
+    } catch (e) {
+        console.error("Alerts Feed Error:", e.message);
+        res.json({ status: "UNKNOWN", active_threats: [] });
+    }
+});
 
 // 🚀 IGNITION
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`🚀 EXPAT RESCUE INTEL Active on Port ${PORT}`);
+});
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`
+    -------------------------------------------
+    🛰️  EXPAT RESCUE INTEL COMMAND ACTIVE
+    -------------------------------------------
+    Location: Bahrain / GCC
+    System: Node.js (Replit)
+    URL: http://0.0.0.0:${PORT}
+    -------------------------------------------
+    `);
 });
