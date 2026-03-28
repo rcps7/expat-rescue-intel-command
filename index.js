@@ -71,7 +71,7 @@ app.get("/api/planes", async (req, res) => {
 app.get("/api/intel", async (req, res) => {
     const sources = [
         { name: "BBC WORLD", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
-        { name: "AL JAZEERA", url: "https://www.aljazeera.com/xml/rss/all.xml" },
+        { name: "FIRST POST", url: "https://www.firstpost.com/commonfeeds/v1/mfp/rss/world.xml" },
         { name: "UPI NEWS", url: "https://rss.upi.com/news/news.rss" }
     ];
 

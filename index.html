@@ -6,6 +6,9 @@
                     <title>Pravasi Intel Dashboard | Tactical Command</title>
                     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
                     <style>
+                        .ship-icon {
+                            transition: transform 0.5s ease-in-out;
+                        }
                         /* --- CORE LAYOUT --- */
                         body {
                             margin: 0;
@@ -266,6 +269,53 @@
                         const planesGroup = L.layerGroup().addTo(map);
                         const navalLayerGroup = L.layerGroup().addTo(map);
                         const corridorLayer = L.layerGroup().addTo(map);
+                        const shipLayer = L.layerGroup().addTo(map);
+                        // Manama / Bahrain focus
+                        map.setView([26.2285, 50.5860], 8);
+                        
+                        async function updateNavalTraffic() {
+                            try {
+                                const response = await fetch('/api/naval');
+                                const ships = await response.json();
+
+                                // Clear old markers before drawing new ones
+                                shipLayer.clearLayers();
+
+                                ships.forEach(ship => {
+                                    if (ship.lat && ship.lng) {
+                                        // Determine icon based on status or type
+                                        const shipColor = ship.emergency ? 'red' : 'blue';
+
+                                        const shipIcon = L.divIcon({
+                                            className: 'ship-marker',
+                                            html: `<div style="transform: rotate(${ship.course || 0}deg); color: ${shipColor}; font-size: 20px;">🚢</div>`,
+                                            iconSize: [25, 25],
+                                            iconAnchor: [12, 12]
+                                        });
+
+                                        const marker = L.marker([ship.lat, ship.lng], { icon: shipIcon });
+
+                                        // Popup with Intel
+                                        marker.bindPopup(`
+                                            <div style="font-family: 'Courier New', monospace;">
+                                                <b style="color: #00ff00;">NAME: ${ship.name || 'UNKNOWN'}</b><br>
+                                                TYPE: ${ship.type || 'N/A'}<br>
+                                                HDG: ${ship.course || 0}° | SPD: ${ship.speed || 0}kn<br>
+                                                DEST: ${ship.dest || 'CLASSIFIED'}
+                                            </div>
+                                        `);
+
+                                        shipLayer.addLayer(marker);
+                                    }
+                                });
+                            } catch (err) {
+                                console.error("Naval Intelligence Interrupted:", err);
+                            }
+                        }
+
+                        // Update every 60 seconds (Ships move slower than planes)
+                        setInterval(updateNavalTraffic, 60000);
+                        updateNavalTraffic();
 
                         async function initWeather() {
                             try {
