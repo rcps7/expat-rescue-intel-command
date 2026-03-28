@@ -1,108 +1,87 @@
 const express = require("express");
 const path = require("path");
 const Parser = require("rss-parser");
-const axios = require("axios"); // Moved to the top with other imports
+const axios = require("axios");
 
 const app = express();
 const PORT = 3000;
+
+// RSS Parser with Browser Headers to bypass blocks
 const parser = new Parser({
-    headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8'
-    },
-    timeout: 10000 // Added a timeout to prevent hanging
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+    timeout: 8000
 });
 
-// Serve the Main Dashboard
+// Serve static files (HTML, CSS, Client JS)
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Secure Weather Key Proxy
-app.get("/api/weather-key", (req, res) => {
-    res.json({ key: "f40cc357f6be024566a0c703c7320ea6" }); 
-});
+// --- 📡 DATA ENDPOINTS --- //
 
-// 🚢 NAVAL TRAFFIC ROUTE
-app.get("/api/naval", async (req, res) => {
+// ✈️ FLIGHTS (ADSB Proxy)
+app.get("/api/flights", async (req, res) => {
     try {
-        // If you don't have a VesselFinder Key yet, use this mock data to verify your frontend map works
-        const mockShips = [
-            { name: "MT ARABIAN STAR", lat: 26.2, lng: 50.7, type: "Tanker", dest: "Khalifa Port" },
-            { name: "USS ABRAHAM LINCOLN", lat: 25.5, lng: 52.1, type: "Military", dest: "Patrol" }
-        ];
-        res.json(mockShips); 
-    } catch (e) { res.json([]); }
-});
-
-// ✈️ ROBUST FLIGHT ROUTE (ADSB)
-app.get("/api/planes", async (req, res) => {
-    try {
-        const response = await axios.get("https://api.adsb.lol/v2/ladd", {
-            headers: { "User-Agent": "PravasiCommand/1.0" },
-            timeout: 8000
-        });
-
+        const response = await axios.get("https://api.adsb.lol/v2/ladd", { timeout: 5000 });
         const planes = response.data.ac || [];
-
-        const mapped = planes.map(p => {
-            // Check for Emergency Squawk 7700
-            const isEmergency = p.squawk === "7700";
-
-            // Check if flight is roughly in the Gulf Box (Lat: 20-30, Lon: 45-55)
-            const inGulf = (p.lat > 20 && p.lat < 30) && (p.lon > 45 && p.lon < 55);
-
-            return {
-                callsign: p.flight?.trim() || p.r || "UNKNOWN",
-                lat: p.lat,
-                lng: p.lon,
-                alt: p.alt_baro || 0,
-                emergency: isEmergency,
-                gulfAlert: inGulf
-            };
-        }).filter(p => p.lat && p.lng);
-
-        res.json({ states: mapped });
-    } catch (error) {
-        console.log("Flight feed error:", error.message);
-        res.json({ states: [] });
-    }
-});
-
-// 📡 GLOBAL INTEL FEED (RSS MULTI-SYNC)
-app.get("/api/intel", async (req, res) => {
-    const parser = new Parser({
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-    });
-
-    const sources = [
-        { name: "BBC", url: "https://feeds.bbci.co.uk/news/world/rss.xml" },
-        { name: "FIRST POST", url: "https://www.firstpost.com/rss/world.xml" }
-    ];
-
-    try {
-        const feedPromises = sources.map(s => 
-            parser.parseURL(s.url).then(f => f.items.map(i => ({
-                title: `[${s.name}] ${i.title}`,
-                url: i.link
-            }))).catch(() => [])
-        );
-        const results = await Promise.all(feedPromises);
-        res.json(results.flat().slice(0, 15));
+        const mapped = planes.map(p => ({
+            callsign: p.flight?.trim() || "UNKNOWN",
+            lat: p.lat,
+            lng: p.lon,
+            alt: p.alt_baro || 0,
+            type: (p.t === "MIL" || p.flight?.startsWith("RCH")) ? "military" : "civilian",
+            heading: p.track || 0
+        })).filter(p => p.lat && p.lng);
+        res.json(mapped);
     } catch (e) { res.json([]); }
 });
 
-// 🟢 SYSTEM HEARTBEAT
-app.get("/api/status", async (req, res) => {
+// 🚢 SHIPS (Mocked structure - insert VesselFinder API here)
+app.get("/api/ships", async (req, res) => {
+    // Replace with actual AIS API call
+    res.json([
+        { name: "CARGO ALPHA", lat: 26.5, lng: 50.8, type: "cargo", heading: 45 },
+        { name: "USS PATROL", lat: 25.8, lng: 51.2, type: "military", heading: 120 },
+        { name: "FERRY ONE", lat: 26.2, lng: 50.6, type: "civilian", heading: 200 }
+    ]);
+});
+
+// 🛰️ SATELLITES (Mocked structure - insert TLE parser here)
+app.get("/api/satellites", async (req, res) => {
+    res.json([
+        { name: "STARLINK-102", lat: 27.0, lng: 49.0, type: "comms" },
+        { name: "LANDSAT-8", lat: 24.0, lng: 52.0, type: "imaging" }
+    ]);
+});
+
+// 📰 NEWS FEEDS (Categorized)
+app.get("/api/news/:category", async (req, res) => {
+    const urls = {
+        ticker: "https://feeds.bbci.co.uk/news/world/rss.xml", // Top scrolling
+        iran: "https://www.aljazeera.com/xml/rss/all.xml",      // Filtered later
+        finance: "https://search.cnbc.com/rs/search/combinedcms/view.xml?id=10000664",
+        tech: "https://www.wired.com/feed/rss"
+    };
+
     try {
-        await axios.get("https://www.google.com", { timeout: 2000 });
-        res.json({ internet: "ONLINE", timestamp: new Date().toLocaleTimeString() });
+        const feedUrl = urls[req.params.category];
+        if (!feedUrl) return res.status(404).json([]);
+
+        const feed = await parser.parseURL(feedUrl);
+        const articles = feed.items.slice(0, 5).map(item => ({
+            title: item.title,
+            link: item.link
+        }));
+        res.json(articles);
     } catch (e) {
-        res.json({ internet: "OFFLINE", error: e.message });
+        console.error(`Feed Error (${req.params.category}):`, e.message);
+        res.json([{ title: "FEED OFFLINE", link: "#" }]);
     }
 });
 
 // 🚀 IGNITION
 app.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 Pravasi Command Center Active on Port ${PORT}`);
+    console.log(`🚀 EXPAT RESCUE INTEL Active on Port ${PORT}`);
 });
