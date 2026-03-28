@@ -1,637 +1,484 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pravasi Intel Dashboard | Tactical Command</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        /* Larger touch targets for mobile */
-        @media (max-width: 768px) {
-            .flight-icon {
-                border-left: 10px solid transparent;
-                border-right: 10px solid transparent;
-                border-bottom: 20px solid; /* Larger triangles for fingers */
-            }
-        }
-        /* --- TACTICAL TRIANGLE ICONS --- */
-        .flight-icon {
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-bottom: 16px solid; /* The color is set via JS */
-            transition: transform 0.5s;
-        }
-
-        .flight-icon-normal { border-bottom-color: #00ff00; } /* Green */
-        .flight-icon-military { border-bottom-color: #ff8c00; } /* Orange */
-
-        /* --- MOBILE RESPONSIVENESS (iPhone 17 Optimized) --- */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column; /* Stack sidebars on top of each other */
-                overflow-y: auto;
-            }
-
-            .sidebar {
-                width: 100% !important;
-                height: auto !important;
-                max-height: 400px;
-            }
-
-            #map {
-                height: 50vh !important; /* Give the map half the screen on mobile */
-                width: 100%;
-            }
-
-            #left-sidebar { order: 2; } /* Notes come after the map */
-            #right-sidebar { order: 3; } /* News at the bottom */
-
-            .sidebar-header {
-                padding: 10px;
-                font-size: 0.8rem;
-            }
-        }
-        /* --- CORE LAYOUT --- */
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #0d1117;
-            color: white;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex; /* Creates the three-column structure */
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        #map {
-            flex-grow: 1; /* Map takes up all available center space */
-            height: 100vh;
-            z-index: 1;
-        }
-
-        /* --- SIDEBAR UNIVERSAL STYLES --- */
-        .sidebar {
-            width: 320px;
-            height: 100vh;
-            background: #161b22;
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
-
-        #left-sidebar { border-right: 1px solid #30363d; }
-        #right-sidebar { border-left: 1px solid #30363d; }
-
-        .sidebar-header {
-            padding: 15px;
-            background: #010409;
-            border-bottom: 1px solid #30363d;
-            font-weight: bold;
-            color: #58a6ff;
-            letter-spacing: 1px;
-            font-size: 0.9rem;
-        }
-
-        /* --- SCROLLBAR STYLING --- */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0d1117; }
-        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
-
-        /* --- TACTICAL COMPONENTS --- */
-        .panel-section {
-            border-bottom: 1px solid #333;
-            padding: 15px;
-        }
-
-        h3 { margin-top: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-        /* News Ticker */
-        #ticker-container {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            border-top: 1px solid #FFBF00;
-            color: #FFBF00;
-            overflow: hidden;
-            white-space: nowrap;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            z-index: 9999;
-        }
-
-        #ticker-content {
-            display: inline-block;
-            padding-left: 100%;
-            animation: marquee 180s linear infinite; /* Slowed down for readability */
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-        }
-
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
-
-        .intel-card {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-        
-        .intel-card a { color: #58a6ff; text-decoration: none; }
-    </style>
-</head>
-<body>
-    <div id="gatekeeper-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #010409; z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
-        <div style="width: 90%; max-width: 500px; background: #161b22; border: 1px solid #FFBF00; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 50px rgba(255, 191, 0, 0.2);">
-            <h1 style="color: #FFBF00; font-size: 1.5rem; margin-top: 0; letter-spacing: 2px;">⚠️ AUTHORIZED ACCESS ONLY</h1>
-            <div style="background: #0d1117; padding: 15px; border-radius: 4px; border: 1px solid #30363d; margin-bottom: 20px; text-align: left; max-height: 200px; overflow-y: auto;">
-                <p style="color: #8b949e; font-size: 12px; line-height: 1.6; font-family: monospace;">
-                    <strong>PROVISIONAL INTELLIGENCE DASHBOARD (PRAVASI INTEL)</strong><br><br>
-                    1. Data provided is for strategic awareness and simulation support.<br>
-                    2. Users must not use this data for flight navigation or official medical triage without verification.<br>
-                    3. SITREP logs are session-bound and the property of the authorized operator.<br><br>
-                    Unauthorized access to this command terminal is strictly prohibited.
-                </p>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="grantAccess()" style="flex: 2; background: #238636; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; letter-spacing: 1px;">I AGREE / ENTER TERMINAL</button>
-                <button onclick="denyAccess()" style="flex: 1; background: #da3633; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">EXIT</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="left-sidebar" class="sidebar">
-        <div class="sidebar-header">📋 MISSION LOGS</div>
-
-        <div class="panel-section" style="background: rgba(88, 166, 255, 0.05);">
-            <h3 style="color: #58a6ff;">📝 SITREP NOTES</h3>
-            <textarea id="sitrep-input" placeholder="Enter tactical updates..." 
-                      style="width: 100%; height: 150px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; font-family: monospace; font-size: 12px; border-radius: 4px; padding: 10px; box-sizing: border-box; resize: none;"></textarea>
-            <div style="display: flex; gap: 5px; margin-top: 8px;">
-                <button onclick="saveSitrep()" style="flex: 2; background: #238636; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px;">SAVE REPORT</button>
-                <button onclick="clearSitrep()" style="flex: 1; background: #30363d; color: #8b949e; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">CLEAR</button>
-            </div>
-        </div>
-        <div class="panel-section" style="background: rgba(0, 88, 255, 0.05);">
-            <h3 style="color: #58a6ff;">🚢 NAVAL INTEL (OBKM)</h3>
-            <div id="marine-traffic-box" style="width: 100%; height: 200px; border: 1px solid #30363d; border-radius: 4px; overflow: hidden;">
-                <iframe name="marinetraffic" id="marinetraffic" width="100%" height="200" 
-                        src="https://www.marinetraffic.com/en/ais/embed/zoom:10/centery:26.2/centerx:50.6/maptype:7/shownames:false/mmsi:0/shipid:0/fleet:/fleet_id:/vsl_type:/show_menu:false/remember:false/get_it:false" 
-                        frameborder="0"></iframe>
-            </div>
-            <p style="font-size: 9px; color: #8b949e; margin-top: 5px;">*AIS Tracking active for Khalifa Bin Salman Port*</p>
-        </div>
-
-        <div id="intercept-log-container" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="color: #FFBF00; margin: 0;">📋 TACTICAL LOG</h3>
-                <button onclick="downloadLog()" style="background: none; border: 1px solid #FFBF00; color: #FFBF00; font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer;">DOWNLOAD TXT</button>
-            </div>
-            <div id="intercept-log-content" style="font-family: 'Courier New', monospace; font-size: 11px; color: #8b949e; line-height: 1.4;">
-                System initialized. Monitoring airspace...
-            </div>
-        </div>
-    </div>
-
-    <div id="map"></div>
-
-    <div id="right-sidebar" class="sidebar">
-        <div class="sidebar-header">📡 INTEL COMMAND</div>
-
-        <div id="status-bar" style="padding: 10px 15px; font-size: 0.7rem; background: #010409; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px;">
-            <span id="status-light" style="width: 8px; height: 8px; background: grey; border-radius: 50%;"></span>
-            <span id="status-text">SYSTEM STANDBY</span>
-        </div>
-
-        <div class="panel-section" style="background: rgba(255,191,0,0.03);">
-            <h3 style="color: #FFBF00;">📊 OBBI METEO VITALS</h3>
-            <div id="meteo-content" style="font-family: monospace; font-size: 12px; color: #c9d1d9;">Syncing atmosphere...</div>
-        </div>
-
-        <div class="panel-section">
-            <h3 style="color: #FFBF00;">📡 TARGET WATCHLIST</h3>
-            <div id="watchlist-content" style="max-height: 180px; overflow-y: auto; font-size: 11px;">Scanning regional activity...</div>
-        </div>
-        
-        <div style="padding: 15px; background: #010409;">
-            <input type="text" id="intel-search" placeholder="Search Global News..." 
-                   style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box; font-size: 12px;">
-        </div>
-
-        <div id="intel-feed" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
-            <p style="color: #8b949e; font-size: 12px;">Syncing global feeds...</p>
-        </div>
-    </div>
-
-    <div id="ticker-container">
-        <div id="ticker-content">INITIALIZING GLOBAL INTEL FEED... /// STANDBY FOR MULTI-SOURCE SYNC...</div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        function grantAccess() {
-            // Hide the overlay
-            document.getElementById('gatekeeper-overlay').style.display = 'none';
-
-            // Optional: Save agreement in session storage so it doesn't pop up again this session
-            sessionStorage.setItem('access_granted', 'true');
-
-            // Initialize systems if they were paused
-            console.log("Terminal Access Granted. Initializing Vitals...");
-        }
-
-        function denyAccess() {
-            // Redirect the user to Google
-            window.location.href = "https://www.google.com";
-        }
-
-        // Auto-check on load
-        window.addEventListener('DOMContentLoaded', () => {
-            if (sessionStorage.getItem('access_granted') === 'true') {
-                document.getElementById('gatekeeper-overlay').style.display = 'none';
-            }
-        });
-        // 1. Initialize Map
-
-            const map = L.map('map', { attributionControl: false }).setView([20, 0], 2);
-
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-
-
-
-            const planesGroup = L.layerGroup().addTo(map);
-
-            const corridorLayer = L.layerGroup().addTo(map);
-
-
-
-            // 2. Weather & Controls
-
-            async function initWeather() {
-
-                try {
-
-                    const res = await fetch('/api/weather-key');
-
-                    const data = await res.json();
-
-                    const apiKey = data.key;
-
-
-
-                    const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.3 });
-
-                    const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.4 });
-
-
-
-                    L.control.layers(null, {
-
-                        "Radar Targets": planesGroup,
-
-                        "Wind Velocity": windLayer,
-
-                        "Precipitation": rainLayer,
-
-                        "Safe Corridors": corridorLayer
-
-                    }, { position: 'topright', collapsed: false }).addTo(map);
-
-
-
-                    windLayer.addTo(map);
-
-                } catch (e) {
-
-                    console.log("Weather Overlay Sync Failed.");
-
-                }
-
-            }
-
-
-
-            // 3. Flight Logic + HOVER POPUP
-
-            function createFlightIcon(flightData) {
-                const callsign = (flightData.callsign || "").trim();
-                const militaryPrefixes = ['RCH', 'RRR', 'ASY', 'CFC', 'HAF', 'IAM', 'BAF', 'RSF'];
-                const isMilitary = militaryPrefixes.some(prefix => callsign.startsWith(prefix));
-                const iconClass = isMilitary ? 'flight-icon-military' : 'flight-icon-normal';
-                const rotation = flightData.track || 0;
-                return L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class="flight-icon ${iconClass}" style="transform: rotate(${rotation}deg);"></div>`,
-                    iconSize: [16, 16],
-                    iconAnchor: [8, 8]
-                });
-            }
-
-            async function updateFlights() {
-
-                try {
-
-                    const response = await fetch('/api/planes');
-
-                    const data = await response.json();
-
-                    const watchlist = document.getElementById('watchlist-content');
-
-                    if (data.states) {
-
-                        planesGroup.clearLayers();
-
-                        let alertsHtml = "";
-
-                        data.states.forEach(p => {
-
-                            if (!p.lat || !p.lng) return;
-
-                            const dot = L.marker([p.lat, p.lng], { icon: createFlightIcon(p) }).addTo(planesGroup);
-
-                            const popupContent = `<div style="font-size:12px;"><b>ID:</b> ${p.callsign}<br><b>ALT:</b> ${p.alt} FT<br><b>STATUS:</b> ${p.emergency ? 'EMERGENCY' : 'NORMAL'}</div>`;
-
-                            dot.on('mouseover', function () {
-                                this.bindPopup(popupContent).openPopup();
-                            });
-
-                            dot.on('mouseout', function () {
-                                this.closePopup();
-                            });
-
-                            if (p.emergency || p.gulfAlert) {
-                                const alertClass = p.emergency ? 'alert-item alert-emergency' : 'alert-item';
-                                alertsHtml += `<div class="${alertClass}"><strong>${p.emergency ? '⚠️ EMERGENCY' : '📍 GULF ZONE'}</strong><br>${p.callsign} | ${p.alt} ft</div>`;
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Pravasi Intel Dashboard | Tactical Command</title>
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <style>
+                        /* --- CORE LAYOUT --- */
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            background-color: #0d1117;
+                            color: white;
+                            font-family: 'Segoe UI', sans-serif;
+                            display: flex;
+                            height: 100vh;
+                            overflow: hidden;
+                        }
+
+                        #map {
+                            flex-grow: 1;
+                            height: 100vh;
+                            z-index: 1;
+                        }
+
+                        /* --- SIDEBAR UNIVERSAL STYLES --- */
+                        .sidebar {
+                            width: 320px;
+                            height: 100vh;
+                            background: #161b22;
+                            display: flex;
+                            flex-direction: column;
+                            z-index: 10;
+                        }
+
+                        #left-sidebar { border-right: 1px solid #30363d; }
+                        #right-sidebar { border-left: 1px solid #30363d; }
+
+                        .sidebar-header {
+                            padding: 15px;
+                            background: #010409;
+                            border-bottom: 1px solid #30363d;
+                            font-weight: bold;
+                            color: #58a6ff;
+                            letter-spacing: 1px;
+                            font-size: 0.9rem;
+                        }
+
+                        /* --- SCROLLBAR STYLING --- */
+                        ::-webkit-scrollbar { width: 6px; }
+                        ::-webkit-scrollbar-track { background: #0d1117; }
+                        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+                        /* --- TACTICAL COMPONENTS --- */
+                        .panel-section {
+                            border-bottom: 1px solid #333;
+                            padding: 15px;
+                        }
+
+                        h3 { margin-top: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+                        .intel-card {
+                            background: #0d1117;
+                            border: 1px solid #30363d;
+                            padding: 10px;
+                            margin-bottom: 8px;
+                            border-radius: 4px;
+                            font-size: 0.8rem;
+                        }
+                        .intel-card a { color: #58a6ff; text-decoration: none; }
+
+                        /* --- ICONS: AIR VS SEA --- */
+                        .flight-icon {
+                            width: 0; height: 0;
+                            border-left: 8px solid transparent;
+                            border-right: 8px solid transparent;
+                            border-bottom: 16px solid;
+                            transition: transform 0.5s;
+                        }
+                        .flight-icon-normal { border-bottom-color: #00ff00; } /* Green - Air */
+                        .flight-icon-military { border-bottom-color: #ff8c00; } /* Orange - Combat Air */
+                        .ship-triangle { border-bottom-color: #0077be; } /* Blue - Naval */
+
+                        /* --- NEWS TICKER --- */
+                        #ticker-container {
+                            position: fixed;
+                            bottom: 0;
+                            width: 100%;
+                            background: rgba(0, 0, 0, 0.9);
+                            border-top: 1px solid #FFBF00;
+                            color: #FFBF00;
+                            overflow: hidden;
+                            white-space: nowrap;
+                            height: 30px;
+                            display: flex;
+                            align-items: center;
+                            z-index: 9999;
+                        }
+
+                        #ticker-content {
+                            display: inline-block;
+                            padding-left: 100%;
+                            animation: marquee 180s linear infinite;
+                            font-family: 'Courier New', monospace;
+                            font-size: 13px;
+                        }
+
+                        @keyframes marquee {
+                            0% { transform: translate(0, 0); }
+                            100% { transform: translate(-100%, 0); }
+                        }
+
+                        /* --- MOBILE RESPONSIVENESS (iPhone Optimized) --- */
+                        @media (max-width: 768px) {
+                            body {
+                                flex-direction: column;
+                                overflow-y: auto;
+                            }
+                            .sidebar {
+                                width: 100% !important;
+                                height: auto !important;
+                                max-height: 400px;
+                            }
+                            #map {
+                                height: 50vh !important;
+                                width: 100%;
+                            }
+                            #left-sidebar { order: 2; }
+                            #right-sidebar { order: 3; }
+                            .sidebar-header {
+                                padding: 10px;
+                                font-size: 0.8rem;
+                            }
+                            .ship-triangle {
+                                border-left: 8px solid transparent;
+                                border-right: 8px solid transparent;
+                                border-bottom: 15px solid #0077be;
+                            }
+                            .flight-icon {
+                                border-left: 10px solid transparent;
+                                border-right: 10px solid transparent;
+                                border-bottom: 20px solid;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div id="gatekeeper-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #010409; z-index: 10000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px);">
+                        <div style="width: 90%; max-width: 500px; background: #161b22; border: 1px solid #FFBF00; padding: 30px; border-radius: 8px; text-align: center; box-shadow: 0 0 50px rgba(255, 191, 0, 0.2);">
+                            <h1 style="color: #FFBF00; font-size: 1.5rem; margin-top: 0; letter-spacing: 2px;">⚠️ AUTHORIZED ACCESS ONLY</h1>
+                            <div style="background: #0d1117; padding: 15px; border-radius: 4px; border: 1px solid #30363d; margin-bottom: 20px; text-align: left; max-height: 200px; overflow-y: auto;">
+                                <p style="color: #8b949e; font-size: 12px; line-height: 1.6; font-family: monospace;">
+                                    <strong>PROVISIONAL INTELLIGENCE DASHBOARD (PRAVASI INTEL)</strong><br><br>
+                                    1. Data provided is for strategic awareness and simulation support.<br>
+                                    2. Users must not use this data for flight navigation or official triage without verification.<br>
+                                    3. SITREP logs are session-bound and the property of the authorized operator.<br><br>
+                                    Unauthorized access to this command terminal is strictly prohibited.
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button onclick="grantAccess()" style="flex: 2; background: #238636; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; letter-spacing: 1px;">I AGREE / ENTER TERMINAL</button>
+                                <button onclick="denyAccess()" style="flex: 1; background: #da3633; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold;">EXIT</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="left-sidebar" class="sidebar">
+                        <div class="sidebar-header">📋 MISSION LOGS</div>
+
+                        <div class="panel-section" style="background: rgba(88, 166, 255, 0.05);">
+                            <h3 style="color: #58a6ff;">📝 SITREP NOTES</h3>
+                            <textarea id="sitrep-input" placeholder="Enter tactical updates..." 
+                                      style="width: 100%; height: 150px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; font-family: monospace; font-size: 12px; border-radius: 4px; padding: 10px; box-sizing: border-box; resize: none;"></textarea>
+                            <div style="display: flex; gap: 5px; margin-top: 8px;">
+                                <button onclick="saveSitrep()" style="flex: 2; background: #238636; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 10px;">SAVE REPORT</button>
+                                <button onclick="clearSitrep()" style="flex: 1; background: #30363d; color: #8b949e; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 10px;">CLEAR</button>
+                            </div>
+                        </div>
+
+                        <div class="panel-section" style="background: rgba(0, 88, 255, 0.05);">
+                            <h3 style="color: #58a6ff;">🚢 NAVAL INTEL (OBKM)</h3>
+                            <div id="marine-traffic-box" style="width: 100%; height: 200px; border: 1px solid #30363d; border-radius: 4px; overflow: hidden;">
+                                <iframe name="marinetraffic" id="marinetraffic" width="100%" height="200" 
+                                        src="https://www.marinetraffic.com/en/ais/embed/zoom:10/centery:26.2/centerx:50.6/maptype:7/shownames:false/mmsi:0/shipid:0/fleet:/fleet_id:/vsl_type:/show_menu:false/remember:false/get_it:false" 
+                                        frameborder="0"></iframe>
+                            </div>
+                            <p style="font-size: 9px; color: #8b949e; margin-top: 5px;">*AIS Tracking active for Khalifa Bin Salman Port*</p>
+                        </div>
+
+                        <div id="intercept-log-container" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <h3 style="color: #FFBF00; margin: 0;">📋 TACTICAL LOG</h3>
+                                <button onclick="downloadLog()" style="background: none; border: 1px solid #FFBF00; color: #FFBF00; font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer;">DOWNLOAD TXT</button>
+                            </div>
+                            <div id="intercept-log-content" style="font-family: 'Courier New', monospace; font-size: 11px; color: #8b949e; line-height: 1.4;">
+                                System initialized. Monitoring airspace...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="map"></div>
+
+                    <div id="right-sidebar" class="sidebar">
+                        <div class="sidebar-header">📡 INTEL COMMAND</div>
+
+                        <div id="status-bar" style="padding: 10px 15px; font-size: 0.7rem; background: #010409; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px;">
+                            <span id="status-light" style="width: 8px; height: 8px; background: grey; border-radius: 50%;"></span>
+                            <span id="status-text">SYSTEM STANDBY</span>
+                        </div>
+
+                        <div class="panel-section" style="background: rgba(255,191,0,0.03);">
+                            <h3 style="color: #FFBF00;">📊 OBBI METEO VITALS</h3>
+                            <div id="meteo-content" style="font-family: monospace; font-size: 12px; color: #c9d1d9;">Syncing atmosphere...</div>
+                        </div>
+
+                        <div class="panel-section">
+                            <h3 style="color: #FFBF00;">📡 TARGET WATCHLIST</h3>
+                            <div id="watchlist-content" style="max-height: 180px; overflow-y: auto; font-size: 11px;">Scanning regional activity...</div>
+                        </div>
+
+                        <div style="padding: 15px; background: #010409;">
+                            <input type="text" id="intel-search" placeholder="Search Global News..." 
+                                   style="width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px; box-sizing: border-box; font-size: 12px;">
+                        </div>
+
+                        <div id="intel-feed" style="flex-grow: 1; overflow-y: auto; padding: 15px;">
+                            <p style="color: #8b949e; font-size: 12px;">Syncing global feeds...</p>
+                        </div>
+                    </div>
+
+                    <div id="ticker-container">
+                        <div id="ticker-content">INITIALIZING GLOBAL INTEL FEED... /// STANDBY FOR MULTI-SOURCE SYNC...</div>
+                    </div>
+
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <script>
+                        // --- 1. ACCESS & BOOT LOGIC ---
+                        function grantAccess() {
+                            document.getElementById('gatekeeper-overlay').style.display = 'none';
+                            sessionStorage.setItem('access_granted', 'true');
+                            console.log("Terminal Access Granted. Initializing Vitals...");
+                        }
+
+                        function denyAccess() {
+                            window.location.href = "https://www.google.com";
+                        }
+
+                        window.addEventListener('DOMContentLoaded', () => {
+                            if (sessionStorage.getItem('access_granted') === 'true') {
+                                document.getElementById('gatekeeper-overlay').style.display = 'none';
                             }
 
+                            // Load saved SITREP
+                            const savedText = localStorage.getItem('pravasi_sitrep');
+                            if (savedText) {
+                                document.getElementById('sitrep-input').value = savedText;
+                            }
                         });
 
-                        watchlist.innerHTML = alertsHtml || "Airspace Clear.";
-
-                    }
-
-                } catch (e) { console.log("Flight Sync Error"); }
-
-            }
-
-
-
-            // 4. Intelligence Logic
-
-            async function updateIntel(search = "") {
-
-                const feed = document.getElementById('intel-feed');
-
-                try {
-
-                    const response = await fetch(`/api/intel?search=${encodeURIComponent(search)}`);
-
-                    const articles = await response.json();
-
-                    feed.innerHTML = "";
-
-                    articles.slice(0, 10).forEach(a => {
-
-                        const card = document.createElement('div');
-
-                        card.className = "intel-card";
-
-                        card.innerHTML = `<small>${a.domain || 'Global'}</small><a href="${a.url}" target="_blank">${a.title}</a>`;
-
-                        feed.appendChild(card);
-
-                    });
-
-                } catch (e) { feed.innerHTML = "<p>Feed delayed...</p>"; }
-
-            }
-
-
-
-            async function updateTicker() {
-
-                try {
-
-                    // Try Reuters first
-
-                    let response = await fetch('/api/intel');
-
-                    let articles = await response.json();
-
-
-
-                    // If the array is empty or says "Offline", try the fallback directly
-
-                    if (!articles || articles.length === 0 || articles[0].title.includes("Offline"))             {
-
-                         const fallback = await fetch('https://ok.surf/api/v1/news-section?section=World');
-
-                         const data = await fallback.json();
-
-                         articles = data.World.map(item => ({ title: item.title }));
-
-                 }
-
-
-
-                    if (articles.length > 0) {
-
-                        document.getElementById('ticker-content').innerText = 
-
-                            "⚠️ INTEL UPDATE: " + articles.map(a => a.title).join("  ///  ");
-
-                    }
-
-                } catch (e) {
-
-                    document.getElementById('ticker-content').innerText = "SYSTEM ALERT: EXTERNAL DATA FEEDS RESTRICTED BY PROVIDER /// STANDBY...";
-
-                }
-
-            }
-
-
-
-            // 5. Meteo Vitals (OBBI)
-
-            async function updateMeteo() {
-
-                try {
-
-                    const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=26.27&longitude=50.63&current=temperature_2m,surface_pressure,wind_speed_10m');
-
-                    const data = await res.json();
-
-                    const c = data.current;
-
-                    document.getElementById('meteo-content').innerHTML = `
-
-                        TEMP: ${c.temperature_2m}°C | WIND: ${c.wind_speed_10m} km/h<br>
-
-                        PRES: ${c.surface_pressure} hPa | OBBI STAT: CLOSED
-
-                    `;
-
-                } catch (e) { }
-
-            }
-
-
-
-            // 6. System Integrity
-
-            async function checkSystem() {
-
-                const light = document.getElementById('status-light');
-
-                const text = document.getElementById('status-text');
-
-                try {
-
-                    const res = await fetch('/api/status');
-
-                    const data = await res.json();
-
-                    if (data.internet === "ONLINE") {
-
-                        light.style.backgroundColor = "#238636";
-
-                        text.innerText = "ONLINE: " + data.timestamp;
-
-                        text.style.color = "#3fb950";
-
-                    }
-
-                } catch (e) {
-
-                    light.style.backgroundColor = "#da3633";
-
-                    text.innerText = "OFFLINE";
-
-                }
-
-            }
-
-
-
-            function drawCorridors() {
-
-                const paths = [
-
-                    { name: "M600 Recovery", coords: [[29, 48], [27, 50], [26.2, 50.6], [25, 52]] },
-
-                    { name: "L602 Humanitarian", coords: [[24, 51], [25.5, 50.8], [26.2, 50.6], [27.5, 49]] }
-
-                ];
-
-                paths.forEach(p => {
-
-                    L.polyline(p.coords, { color: '#FFBF00', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(corridorLayer).bindTooltip(p.name);
-
-                });
-
-                L.circleMarker([26.27, 50.63], { radius: 8, color: '#ff0000', weight: 2 }).addTo(corridorLayer).bindPopup("OBBI CLOSED");
-
-            }
-
-
-
-            // Initial Boot
-
-            initWeather();
-
-            updateFlights();
-
-            updateIntel();
-
-            updateTicker();
-
-            updateMeteo();
-
-            checkSystem();
-
-            drawCorridors();
-
-
-
-            // Intervals
-
-            setInterval(updateFlights, 20000);
-
-            setInterval(updateTicker, 300000);
-
-            setInterval(updateMeteo, 900000);
-
-            setInterval(checkSystem, 10000);
-
-            // Function to download the Intercept Log as a .txt file
-
-            function downloadLog() {
-
-                const logContent = document.getElementById('intercept-log-content').innerText;
-
-                const blob = new Blob([logContent], { type: 'text/plain' });
-
-                const anchor = document.createElement('a');
-
-                anchor.download = `intercept_log_${new Date().toISOString().slice(0,10)}.txt`;
-
-                anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
-
-                anchor.dataset.downloadurl = ['text/plain', anchor.download, anchor.href].join(':');
-
-                anchor.click();
-
-            }
-
-
-
-            // Function to save SITREP notes
-
-            function saveSitrep() {
-                const text = document.getElementById('sitrep-input').value;
-                localStorage.setItem('pravasi_sitrep', text);
-            }
-
-            // Function to clear the SITREP pad
-
-            function clearSitrep() {
-
-                if(confirm("Clear all current notes?")) {
-
-                    document.getElementById('sitrep-input').value = "";
-
-                    localStorage.removeItem('pravasi_sitrep');
-
-                }
-
-            }
-
-
-
-            // Load SITREP on boot (Make sure this is in your startup sequence)
-
-            document.addEventListener('DOMContentLoaded', () => {
-
-                const savedText = localStorage.getItem('pravasi_sitrep');
-
-                if (savedText) {
-
-                    document.getElementById('sitrep-input').value = savedText;
-
-                }
-
-            });
-
-        
-    </script>
-</body>
-</html>
+                        // --- 2. MAP INITIALIZATION ---
+                        // Centered closer to the Persian Gulf
+                        const map = L.map('map', { attributionControl: false }).setView([26.2, 50.6], 6);
+                        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+                        const planesGroup = L.layerGroup().addTo(map);
+                        const navalLayerGroup = L.layerGroup().addTo(map);
+                        const corridorLayer = L.layerGroup().addTo(map);
+
+                        async function initWeather() {
+                            try {
+                                const res = await fetch('/api/weather-key');
+                                const data = await res.json();
+                                const apiKey = data.key;
+
+                                const windLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.3 });
+                                const rainLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${apiKey}`, { opacity: 0.4 });
+
+                                L.control.layers(null, {
+                                    "Radar Targets": planesGroup,
+                                    "Naval Targets": navalLayerGroup,
+                                    "Wind Velocity": windLayer,
+                                    "Precipitation": rainLayer,
+                                    "Safe Corridors": corridorLayer
+                                }, { position: 'topright', collapsed: false }).addTo(map);
+
+                                windLayer.addTo(map);
+                            } catch (e) { console.log("Weather Overlay Sync Failed."); }
+                        }
+
+                        // --- 3. FLIGHT & NAVAL LOGIC ---
+                        function createFlightIcon(flightData) {
+                            const callsign = (flightData.callsign || "").trim();
+                            const militaryPrefixes = ['RCH', 'RRR', 'ASY', 'CFC', 'HAF', 'IAM', 'BAF', 'RSF'];
+                            const isMilitary = militaryPrefixes.some(prefix => callsign.startsWith(prefix));
+                            const iconClass = isMilitary ? 'flight-icon-military' : 'flight-icon-normal';
+                            const rotation = flightData.track || 0;
+                            return L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div class="flight-icon ${iconClass}" style="transform: rotate(${rotation}deg);"></div>`,
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8]
+                            });
+                        }
+
+                        async function updateFlights() {
+                            try {
+                                const response = await fetch('/api/planes');
+                                const data = await response.json();
+                                const watchlist = document.getElementById('watchlist-content');
+
+                                if (data && data.states) {
+                                    planesGroup.clearLayers();
+                                    let alertsHtml = "";
+
+                                    data.states.forEach(p => {
+                                        if (!p.lat || !p.lng) return;
+                                        const dot = L.marker([p.lat, p.lng], { icon: createFlightIcon(p) }).addTo(planesGroup);
+                                        const popupContent = `<div style="font-size:12px;"><b>ID:</b> ${p.callsign}<br><b>ALT:</b> ${p.alt} FT<br><b>STATUS:</b> ${p.emergency ? 'EMERGENCY' : 'NORMAL'}</div>`;
+
+                                        dot.on('mouseover', function () { this.bindPopup(popupContent).openPopup(); });
+                                        dot.on('mouseout', function () { this.closePopup(); });
+
+                                        if (p.emergency || p.gulfAlert) {
+                                            const alertClass = p.emergency ? 'alert-item alert-emergency' : 'alert-item';
+                                            alertsHtml += `<div class="${alertClass}"><strong>${p.emergency ? '⚠️ EMERGENCY' : '📍 GULF ZONE'}</strong><br>${p.callsign} | ${p.alt} ft</div>`;
+                                        }
+                                    });
+                                    watchlist.innerHTML = alertsHtml || "Airspace Clear.";
+                                }
+                            } catch (e) { console.log("Flight Sync Error"); }
+                        }
+
+                        function createShipIcon(shipData) {
+                            const rotation = shipData.course || 0;
+                            return L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div class="ship-triangle" style="transform: rotate(${rotation}deg); 
+                                       width: 0; height: 0; border-left: 6px solid transparent; 
+                                       border-right: 6px solid transparent; border-bottom: 12px solid #0077be;"></div>`,
+                                iconSize: [12, 12],
+                                iconAnchor: [6, 6]
+                            });
+                        }
+
+                        async function updateNavalTraffic() {
+                            try {
+                                const response = await fetch('/api/naval');
+                                const ships = await response.json();
+                                navalLayerGroup.clearLayers();
+
+                                ships.forEach(ship => {
+                                    if (ship.lat && ship.lng) {
+                                        const marker = L.marker([ship.lat, ship.lng], { icon: createShipIcon(ship) }).addTo(navalLayerGroup);
+                                        marker.bindPopup(`
+                                            <div style="color: #0077be; font-weight: bold;">🚢 NAVAL UNIT</div>
+                                            <hr>
+                                            <b>NAME:</b> ${ship.name || 'UNKNOWN'}<br>
+                                            <b>TYPE:</b> ${ship.type || 'COMMERCIAL'}<br>
+                                            <b>DEST:</b> ${ship.dest || 'IN TRANSIT'}
+                                        `);
+                                    }
+                                });
+                            } catch (e) { console.log("Naval feed sync error..."); }
+                        }
+
+                        // --- 4. INTELLIGENCE & DATA FEEDS ---
+                        async function updateIntel(search = "") {
+                            const feed = document.getElementById('intel-feed');
+                            try {
+                                const response = await fetch(`/api/intel?search=${encodeURIComponent(search)}`);
+                                const articles = await response.json();
+                                feed.innerHTML = "";
+                                articles.slice(0, 10).forEach(a => {
+                                    const card = document.createElement('div');
+                                    card.className = "intel-card";
+                                    card.innerHTML = `<small>${a.domain || 'Global'}</small><br><a href="${a.url}" target="_blank">${a.title}</a>`;
+                                    feed.appendChild(card);
+                                });
+                            } catch (e) { feed.innerHTML = "<p>Feed delayed...</p>"; }
+                        }
+
+                        async function updateTicker() {
+                            try {
+                                let response = await fetch('/api/intel');
+                                let articles = await response.json();
+
+                                if (!articles || articles.length === 0 || articles[0].title.includes("Offline")) {
+                                    const fallback = await fetch('https://ok.surf/api/v1/news-section?section=World');
+                                    const data = await fallback.json();
+                                    articles = data.World.map(item => ({ title: item.title }));
+                                }
+
+                                if (articles.length > 0) {
+                                    document.getElementById('ticker-content').innerText = "⚠️ INTEL UPDATE: " + articles.map(a => a.title).join("  ///  ");
+                                }
+                            } catch (e) {
+                                document.getElementById('ticker-content').innerText = "SYSTEM ALERT: EXTERNAL DATA FEEDS RESTRICTED BY PROVIDER /// STANDBY...";
+                            }
+                        }
+
+                        async function updateMeteo() {
+                            try {
+                                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=26.27&longitude=50.63&current=temperature_2m,surface_pressure,wind_speed_10m');
+                                const data = await res.json();
+                                const c = data.current;
+                                document.getElementById('meteo-content').innerHTML = `
+                                    TEMP: ${c.temperature_2m}°C | WIND: ${c.wind_speed_10m} km/h<br>
+                                    PRES: ${c.surface_pressure} hPa | OBBI STAT: CLOSED
+                                `;
+                            } catch (e) {}
+                        }
+
+                        async function checkSystem() {
+                            const light = document.getElementById('status-light');
+                            const text = document.getElementById('status-text');
+                            try {
+                                const res = await fetch('/api/status');
+                                const data = await res.json();
+                                if (data.internet === "ONLINE") {
+                                    light.style.backgroundColor = "#238636";
+                                    text.innerText = "ONLINE: " + data.timestamp;
+                                    text.style.color = "#3fb950";
+                                }
+                            } catch (e) {
+                                light.style.backgroundColor = "#da3633";
+                                text.innerText = "OFFLINE / LOCAL ONLY";
+                                text.style.color = "#da3633";
+                            }
+                        }
+
+                        function drawCorridors() {
+                            const paths = [
+                                { name: "M600 Recovery", coords: [[29, 48], [27, 50], [26.2, 50.6], [25, 52]] },
+                                { name: "L602 Humanitarian", coords: [[24, 51], [25.5, 50.8], [26.2, 50.6], [27.5, 49]] }
+                            ];
+                            paths.forEach(p => {
+                                L.polyline(p.coords, { color: '#FFBF00', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(corridorLayer).bindTooltip(p.name);
+                            });
+                            L.circleMarker([26.27, 50.63], { radius: 8, color: '#ff0000', weight: 2 }).addTo(corridorLayer).bindPopup("OBBI CLOSED");
+                        }
+
+                        // --- 5. LOG & SITREP CONTROLS ---
+                        function downloadLog() {
+                            const logContent = document.getElementById('intercept-log-content').innerText;
+                            const blob = new Blob([logContent], { type: 'text/plain' });
+                            const anchor = document.createElement('a');
+                            anchor.download = `intercept_log_${new Date().toISOString().slice(0,10)}.txt`;
+                            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
+                            anchor.click();
+                        }
+
+                        function saveSitrep() {
+                            const text = document.getElementById('sitrep-input').value;
+                            localStorage.setItem('pravasi_sitrep', text);
+                        }
+
+                        function clearSitrep() {
+                            if(confirm("Clear all current notes?")) {
+                                document.getElementById('sitrep-input').value = "";
+                                localStorage.removeItem('pravasi_sitrep');
+                            }
+                        }
+
+                        // --- INITIAL BOOT SEQUENCE ---
+                        initWeather();
+                        drawCorridors();
+                        updateFlights();
+                        updateNavalTraffic(); // Immediately fetch ships on load
+                        updateIntel();
+                        updateTicker();
+                        updateMeteo();
+                        checkSystem();
+
+                        // --- HEARTBEAT INTERVALS ---
+                        setInterval(updateFlights, 20000);
+                        setInterval(updateNavalTraffic, 60000);
+                        setInterval(checkSystem, 10000);
+                        setInterval(updateTicker, 300000);
+                        setInterval(updateMeteo, 900000);
+
+                    </script>
+                </body>
+                </html>
