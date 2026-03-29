@@ -461,7 +461,7 @@ const SWARM_AGENTS = [
 async function callGroq(messages, apiKey) {
     const r = await axios.post(
         "https://api.groq.com/openai/v1/chat/completions",
-        { model: "llama3-70b-8192", messages, temperature: 0.7, max_tokens: 600 },
+        { model: "llama-3.3-70b-versatile", messages, temperature: 0.7, max_tokens: 600 },
         { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, timeout: 30000 }
     );
     return r.data.choices[0].message.content;
