@@ -57,7 +57,7 @@
             }
             #ticker {
                 display: inline-block;
-                animation: scrollLeft 40s linear infinite;
+                animation: scrollLeft 120s linear infinite;
             }
             .weather-display {
                 padding: 0 15px;
@@ -227,11 +227,35 @@
                 "
             >
                 <h2 style="color: var(--alert-red)">
-                    ⚠️ CLASSIFIED OSINT SYSTEM
+                    ⚠️ PRAVASIINTEL CRISIS DASHBOARD
                 </h2>
                 <p style="max-width: 500px">
-                    ACCESS AUTHORIZED FOR DR. ROOPCHAND. DATA AGGREGATED FROM
-                    GCC TACTICAL SOURCES. DO NOT USE FOR PRIMARY NAVIGATION.
+                    The information provided on Pravasi Intel (pravasiintel.com)
+                    is for general informational purposes only. While we strive
+                    to ensure that the content is accurate, reliable, and up to
+                    date, Pravasi Intel makes no representations or warranties
+                    of any kind, express or implied, about the completeness,
+                    accuracy, reliability, suitability, or availability of the
+                    website or the information, products, services, or related
+                    graphics contained on the website for any purpose. Any
+                    reliance you place on such information is therefore strictly
+                    at your own risk. In no event will Pravasi Intel or its
+                    affiliates be liable for any loss or damage, including
+                    without limitation indirect or consequential loss or damage,
+                    or any loss or damage whatsoever arising from loss of data
+                    or profits, arising out of or in connection with the use of
+                    this website. Through this website, you may be able to link
+                    to other websites that are not under the control of Pravasi
+                    Intel. We have no control over the nature, content, and
+                    availability of those sites. The inclusion of any links does
+                    not necessarily imply a recommendation or endorse the views
+                    expressed within them. All content, including articles,
+                    opinions, and analyses, reflects the views of the respective
+                    authors and contributors and does not necessarily represent
+                    the official stance of Pravasi Intel. Users are encouraged
+                    to verify information independently before making decisions
+                    based on the content provided. By accessing this website,
+                    you agree to these terms and conditions. ©Roopchand. P S
                 </p>
                 <button
                     style="
@@ -243,7 +267,7 @@
                     "
                     onclick="document.getElementById('disclaimer').style.display='none'"
                 >
-                    INITIALIZE UPLINK
+                    ACCEPT TO ENTER
                 </button>
             </div>
         </div>
@@ -298,17 +322,67 @@
                     <h3>CYBER / TECH</h3>
                     <div class="content">Loading...</div>
                 </div>
-                <div class="data-col" id="col-alerts" style="flex:1.4">
-                    <h3>⚠️ GCC STRIKE DATA <span id="strike-updated" style="font-size:9px;color:#8b949e;font-weight:normal;"></span></h3>
+                <div class="data-col" id="col-alerts" style="flex: 1.4">
+                    <h3>
+                        ⚠️ GCC STRIKE DATA
+                        <span
+                            id="strike-updated"
+                            style="
+                                font-size: 9px;
+                                color: #8b949e;
+                                font-weight: normal;
+                            "
+                        ></span>
+                    </h3>
                     <div class="content" id="strike-content">Loading...</div>
                 </div>
             </div>
         </div>
 
         <!-- GCC Strike Detail Modal -->
-        <div id="strike-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9000;justify-content:center;align-items:center;">
-            <div style="background:#0a0f0a;border:1px solid var(--neon-green);padding:24px;max-width:540px;width:90%;max-height:80vh;overflow-y:auto;font-family:'Courier New',monospace;position:relative;">
-                <button onclick="document.getElementById('strike-modal').style.display='none'" style="position:absolute;top:10px;right:14px;background:none;border:none;color:var(--alert-red);font-size:18px;cursor:pointer;">✕</button>
+        <div
+            id="strike-modal"
+            style="
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.85);
+                z-index: 9000;
+                justify-content: center;
+                align-items: center;
+            "
+        >
+            <div
+                style="
+                    background: #0a0f0a;
+                    border: 1px solid var(--neon-green);
+                    padding: 24px;
+                    max-width: 540px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    font-family: &quot;Courier New&quot;, monospace;
+                    position: relative;
+                "
+            >
+                <button
+                    onclick="document.getElementById('strike-modal').style.display='none'"
+                    style="
+                        position: absolute;
+                        top: 10px;
+                        right: 14px;
+                        background: none;
+                        border: none;
+                        color: var(--alert-red);
+                        font-size: 18px;
+                        cursor: pointer;
+                    "
+                >
+                    ✕
+                </button>
                 <div id="strike-modal-content"></div>
             </div>
         </div>
@@ -335,9 +409,12 @@
                 ),
             };
             // Add this to your Leaflet initialization
-            const shipLayer = L.tileLayer('https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png', {
-                attribution: 'Map data: &copy; OpenSeaMap contributors'
-            }).addTo(map);
+            const shipLayer = L.tileLayer(
+                "https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png",
+                {
+                    attribution: "Map data: &copy; OpenSeaMap contributors",
+                },
+            ).addTo(map);
 
             // --- 2. TACTICAL LOGGING ---
             function addLog(msg, link = null) {
@@ -383,8 +460,12 @@
                             </div>`;
                         L.marker([f.lat, f.lng], { icon })
                             .bindPopup(flightPopup, { maxWidth: 220 })
-                            .on("mouseover", function() { this.openPopup(); })
-                            .on("mouseout", function() { this.closePopup(); })
+                            .on("mouseover", function () {
+                                this.openPopup();
+                            })
+                            .on("mouseout", function () {
+                                this.closePopup();
+                            })
                             .addTo(layers.flights);
                     });
 
@@ -401,7 +482,9 @@
                             iconSize: [10, 18],
                         });
                         L.marker([s.lat, s.lng], { icon })
-                            .bindTooltip(`VESSEL: ${s.name} | HDG: ${Math.round(s.heading)}° | SPD: ${s.speed} kts`)
+                            .bindTooltip(
+                                `VESSEL: ${s.name} | HDG: ${Math.round(s.heading)}° | SPD: ${s.speed} kts`,
+                            )
                             .addTo(layers.ships);
                     });
 
@@ -444,7 +527,7 @@
                             container.innerHTML = articles
                                 .map(
                                     (a) => `
-                                <a class="news-item" href="#" onclick="window.open('${a.link}', 'popup', 'width=800,height=600'); return false;">
+                                <a class="news-item" href="${a.link}" target="_blank" rel="noopener noreferrer">
                                     > ${a.title}
                                 </a>`,
                                 )
@@ -459,14 +542,29 @@
             let strikeData = [];
 
             function showStrikeModal(key) {
-                const c = strikeData.find(x => x.key === key);
+                const c = strikeData.find((x) => x.key === key);
                 if (!c || c.error) return;
                 const cum = c.cumulative;
                 const lat = c.latest;
-                const interceptRate = cum.ballisticDetected ? Math.round((cum.ballisticIntercepted / cum.ballisticDetected) * 100) : 0;
-                const droneRate = cum.dronesDetected ? Math.round((cum.dronesIntercepted / cum.dronesDetected) * 100) : 0;
-                const cruiseRate = cum.cruiseDetected ? Math.round((cum.cruiseIntercepted / cum.cruiseDetected) * 100) : 0;
-                const lastChecked = c.lastUpdated ? new Date(c.lastUpdated).toUTCString() : "Unknown";
+                const interceptRate = cum.ballisticDetected
+                    ? Math.round(
+                          (cum.ballisticIntercepted / cum.ballisticDetected) *
+                              100,
+                      )
+                    : 0;
+                const droneRate = cum.dronesDetected
+                    ? Math.round(
+                          (cum.dronesIntercepted / cum.dronesDetected) * 100,
+                      )
+                    : 0;
+                const cruiseRate = cum.cruiseDetected
+                    ? Math.round(
+                          (cum.cruiseIntercepted / cum.cruiseDetected) * 100,
+                      )
+                    : 0;
+                const lastChecked = c.lastUpdated
+                    ? new Date(c.lastUpdated).toUTCString()
+                    : "Unknown";
 
                 document.getElementById("strike-modal-content").innerHTML = `
                     <div style="color:var(--neon-green);font-size:16px;font-weight:bold;margin-bottom:14px;border-bottom:1px solid #1a331a;padding-bottom:8px;">
@@ -480,7 +578,7 @@
                             <tr><td style="color:#8b949e;padding:2px 0;">Detected</td><td style="text-align:right;">${cum.ballisticDetected}</td></tr>
                             <tr><td style="color:#8b949e;padding:2px 0;">Intercepted</td><td style="text-align:right;color:#39ff14;">${cum.ballisticIntercepted} (${interceptRate}%)</td></tr>
                             <tr><td style="color:#8b949e;padding:2px 0;">Fell into sea</td><td style="text-align:right;">${cum.ballisticSea || 0}</td></tr>
-                            <tr><td style="color:#8b949e;padding:2px 0;">Impacted (confirmed)</td><td style="text-align:right;color:${cum.ballisticImpacted > 0 ? 'var(--alert-red)' : '#39ff14'};">${cum.ballisticImpacted}</td></tr>
+                            <tr><td style="color:#8b949e;padding:2px 0;">Impacted (confirmed)</td><td style="text-align:right;color:${cum.ballisticImpacted > 0 ? "var(--alert-red)" : "#39ff14"};">${cum.ballisticImpacted}</td></tr>
                         </table>
                     </div>
 
@@ -489,7 +587,7 @@
                         <table style="width:100%;font-size:12px;border-collapse:collapse;">
                             <tr><td style="color:#8b949e;padding:2px 0;">Detected</td><td style="text-align:right;">${cum.cruiseDetected}</td></tr>
                             <tr><td style="color:#8b949e;padding:2px 0;">Intercepted</td><td style="text-align:right;color:#39ff14;">${cum.cruiseIntercepted} (${cruiseRate}%)</td></tr>
-                            <tr><td style="color:#8b949e;padding:2px 0;">Impacted</td><td style="text-align:right;color:${cum.cruiseImpacted > 0 ? 'var(--alert-red)' : '#39ff14'};">${cum.cruiseImpacted}</td></tr>
+                            <tr><td style="color:#8b949e;padding:2px 0;">Impacted</td><td style="text-align:right;color:${cum.cruiseImpacted > 0 ? "var(--alert-red)" : "#39ff14"};">${cum.cruiseImpacted}</td></tr>
                         </table>
                     </div>
 
@@ -498,20 +596,26 @@
                         <table style="width:100%;font-size:12px;border-collapse:collapse;">
                             <tr><td style="color:#8b949e;padding:2px 0;">Detected</td><td style="text-align:right;">${cum.dronesDetected}</td></tr>
                             <tr><td style="color:#8b949e;padding:2px 0;">Intercepted</td><td style="text-align:right;color:#39ff14;">${cum.dronesIntercepted} (${droneRate}%)</td></tr>
-                            <tr><td style="color:#8b949e;padding:2px 0;">Impacted</td><td style="text-align:right;color:${cum.dronesImpacted > 0 ? 'var(--alert-red)' : '#39ff14'};">${cum.dronesImpacted}</td></tr>
+                            <tr><td style="color:#8b949e;padding:2px 0;">Impacted</td><td style="text-align:right;color:${cum.dronesImpacted > 0 ? "var(--alert-red)" : "#39ff14"};">${cum.dronesImpacted}</td></tr>
                         </table>
                     </div>
 
-                    ${cum.killed > 0 || cum.injured > 0 ? `
+                    ${
+                        cum.killed > 0 || cum.injured > 0
+                            ? `
                     <div style="margin-bottom:12px;border:1px solid var(--alert-red);padding:8px;">
                         <div style="color:var(--alert-red);font-weight:bold;margin-bottom:4px;">☠ CASUALTIES</div>
                         <table style="width:100%;font-size:12px;border-collapse:collapse;">
                             <tr><td style="color:#8b949e;padding:2px 0;">Killed (confirmed)</td><td style="text-align:right;color:var(--alert-red);">${cum.killed}</td></tr>
                             <tr><td style="color:#8b949e;padding:2px 0;">Injured</td><td style="text-align:right;">${cum.injured}</td></tr>
                         </table>
-                    </div>` : ''}
+                    </div>`
+                            : ""
+                    }
 
-                    ${lat && lat.date ? `
+                    ${
+                        lat && lat.date
+                            ? `
                     <div style="margin-top:10px;padding-top:8px;border-top:1px solid #1a331a;">
                         <div style="color:#58a6ff;font-size:11px;font-weight:bold;">LATEST REPORT: ${lat.label}</div>
                         <div style="font-size:11px;color:#c9d1d9;margin-top:4px;">
@@ -519,54 +623,83 @@
                             Ballistic: ${lat.ballisticDetected} &nbsp;|&nbsp;
                             Drones: ${lat.dronesDetected}
                         </div>
-                    </div>` : ''}
+                    </div>`
+                            : ""
+                    }
                 `;
                 const modal = document.getElementById("strike-modal");
                 modal.style.display = "flex";
             }
 
             // Close modal on background click
-            document.getElementById("strike-modal").addEventListener("click", function(e) {
-                if (e.target === this) this.style.display = "none";
-            });
+            document
+                .getElementById("strike-modal")
+                .addEventListener("click", function (e) {
+                    if (e.target === this) this.style.display = "none";
+                });
 
             async function loadStrikes() {
                 const container = document.getElementById("strike-content");
                 try {
                     const res = await fetch("/api/strikes");
                     const countries = await res.json();
-                    if (!countries.length) { container.innerHTML = "DATALINK OFFLINE"; return; }
+                    if (!countries.length) {
+                        container.innerHTML = "DATALINK OFFLINE";
+                        return;
+                    }
 
                     strikeData = countries;
 
-                    const updatedAt = countries.find(c => c.lastUpdated)?.lastUpdated;
+                    const updatedAt = countries.find(
+                        (c) => c.lastUpdated,
+                    )?.lastUpdated;
                     if (updatedAt) {
                         document.getElementById("strike-updated").innerText =
-                            "— src: github/takahser/uae-dashboard · " + new Date(updatedAt).toLocaleDateString();
+                            "— src: github/takahser/uae-dashboard · " +
+                            new Date(updatedAt).toLocaleDateString();
                     }
 
-                    container.innerHTML = countries.map(c => {
-                        if (c.error) return `<div style="color:#555;font-size:10px;">${c.label}: OFFLINE</div>`;
-                        const cum = c.cumulative;
-                        const interceptRate = cum.ballisticDetected
-                            ? Math.round((cum.ballisticIntercepted / cum.ballisticDetected) * 100) : 0;
-                        const droneRate = cum.dronesDetected
-                            ? Math.round((cum.dronesIntercepted / cum.dronesDetected) * 100) : 0;
-                        return `
+                    container.innerHTML = countries
+                        .map((c) => {
+                            if (c.error)
+                                return `<div style="color:#555;font-size:10px;">${c.label}: OFFLINE</div>`;
+                            const cum = c.cumulative;
+                            const interceptRate = cum.ballisticDetected
+                                ? Math.round(
+                                      (cum.ballisticIntercepted /
+                                          cum.ballisticDetected) *
+                                          100,
+                                  )
+                                : 0;
+                            const droneRate = cum.dronesDetected
+                                ? Math.round(
+                                      (cum.dronesIntercepted /
+                                          cum.dronesDetected) *
+                                          100,
+                                  )
+                                : 0;
+                            return `
                         <div onclick="showStrikeModal('${c.key}')" style="border-bottom:1px solid #1a331a;padding:4px 0;font-size:10px;line-height:1.6;cursor:pointer;" onmouseover="this.style.background='rgba(57,255,20,0.05)'" onmouseout="this.style.background='none'">
                             <span style="color:var(--neon-green);font-weight:bold;">${c.label}</span>
-                            <span style="float:right;color:${cum.ballisticImpacted > 0 ? 'var(--alert-red)' : '#39ff14'};">
-                                ${cum.ballisticImpacted > 0 ? '⚠️ ' + cum.ballisticImpacted + ' IMPACTS' : '✓ CLEAR'}
+                            <span style="float:right;color:${cum.ballisticImpacted > 0 ? "var(--alert-red)" : "#39ff14"};">
+                                ${cum.ballisticImpacted > 0 ? "⚠️ " + cum.ballisticImpacted + " IMPACTS" : "✓ CLEAR"}
                             </span><br>
                             <span style="color:#8b949e;">BM:</span> ${cum.ballisticDetected}↓${cum.ballisticIntercepted}✓ (${interceptRate}%) &nbsp;
                             <span style="color:#8b949e;">UAV:</span> ${cum.dronesDetected}↓${cum.dronesIntercepted}✓ (${droneRate}%)
-                            ${cum.killed > 0 ? `<span style="color:var(--alert-red);"> ☠${cum.killed}</span>` : ''}
+                            ${cum.killed > 0 ? `<span style="color:var(--alert-red);"> ☠${cum.killed}</span>` : ""}
                             <span style="color:#333;font-size:9px;float:right;"> [click for detail]</span>
                         </div>`;
-                    }).join("");
+                        })
+                        .join("");
 
-                    const totalImpacts = countries.reduce((s, c) => s + (c.cumulative?.ballisticImpacted || 0), 0);
-                    if (totalImpacts > 0) addLog(`GCC STRIKE DATA: ${totalImpacts} ballistic impacts confirmed`);
+                    const totalImpacts = countries.reduce(
+                        (s, c) => s + (c.cumulative?.ballisticImpacted || 0),
+                        0,
+                    );
+                    if (totalImpacts > 0)
+                        addLog(
+                            `GCC STRIKE DATA: ${totalImpacts} ballistic impacts confirmed`,
+                        );
                 } catch (e) {
                     container.innerHTML = "STRIKE DATALINK OFFLINE";
                 }
