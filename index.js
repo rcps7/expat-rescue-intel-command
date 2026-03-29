@@ -205,6 +205,7 @@ app.get("/api/strikes", async (req, res) => {
                         cumulative: {
                             ballisticDetected: cum.ballisticDetected || 0,
                             ballisticIntercepted: cum.ballisticIntercepted || 0,
+                            ballisticSea: cum.ballisticSea || 0,
                             ballisticImpacted: cum.ballisticImpacted || 0,
                             dronesDetected: cum.dronesDetected || 0,
                             dronesIntercepted: cum.dronesIntercepted || 0,
