@@ -38,10 +38,133 @@
                 height: 45px;
                 display: flex;
                 align-items: center;
-                justify-content: space-between; /* Ensures weather stays right */
+                justify-content: space-between;
                 border-bottom: var(--border);
                 background: var(--panel-bg);
                 z-index: 1000;
+            }
+
+            /* --- CONFLICT INDEX BAR --- */
+            #conflict-bar {
+                height: 32px;
+                display: flex;
+                align-items: center;
+                background: rgba(5, 8, 5, 0.97);
+                border-bottom: 1px solid #2a1a00;
+                z-index: 999;
+                padding: 0 10px;
+                gap: 6px;
+                position: relative;
+            }
+            #conflict-bar-label {
+                font-size: 10px;
+                color: #ffaa00;
+                font-weight: bold;
+                letter-spacing: 1px;
+                white-space: nowrap;
+                margin-right: 4px;
+            }
+            .cfl-btn {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                background: rgba(255,255,255,0.04);
+                border: 1px solid #1f2f1f;
+                border-radius: 3px;
+                padding: 2px 8px;
+                cursor: pointer;
+                font-family: "Courier New", monospace;
+                font-size: 10px;
+                color: #ccc;
+                white-space: nowrap;
+                transition: background 0.15s;
+            }
+            .cfl-btn:hover { background: rgba(255,255,255,0.10); }
+            .cfl-dot {
+                width: 8px; height: 8px;
+                border-radius: 50%;
+                flex-shrink: 0;
+                box-shadow: 0 0 4px currentColor;
+            }
+            .cfl-name { font-weight: bold; color: #eee; }
+            .cfl-level { font-size: 9px; opacity: 0.8; }
+
+            /* --- CONFLICT DETAIL MODAL --- */
+            #conflict-modal {
+                display: none;
+                position: fixed;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: rgba(0,0,0,0.82);
+                z-index: 9000;
+                justify-content: center;
+                align-items: center;
+            }
+            #conflict-modal.open { display: flex; }
+            #conflict-modal-box {
+                background: #060e06;
+                border: 1px solid #2a4a2a;
+                max-width: 520px;
+                width: 90%;
+                border-radius: 4px;
+                padding: 24px;
+                position: relative;
+                font-family: "Courier New", monospace;
+            }
+            #conflict-modal-close {
+                position: absolute;
+                top: 10px; right: 14px;
+                cursor: pointer;
+                color: #8b949e;
+                font-size: 18px;
+                line-height: 1;
+            }
+            #conflict-modal-close:hover { color: #fff; }
+            #conflict-modal-flag { font-size: 36px; margin-bottom: 6px; }
+            #conflict-modal-title {
+                font-size: 16px;
+                font-weight: bold;
+                color: #eee;
+                margin-bottom: 4px;
+            }
+            #conflict-modal-badge {
+                display: inline-block;
+                padding: 2px 10px;
+                border-radius: 3px;
+                font-size: 11px;
+                font-weight: bold;
+                margin-bottom: 14px;
+            }
+            #conflict-modal-meter {
+                width: 100%;
+                height: 10px;
+                background: #1a261a;
+                border-radius: 3px;
+                margin-bottom: 16px;
+                overflow: hidden;
+            }
+            #conflict-modal-fill {
+                height: 100%;
+                border-radius: 3px;
+                transition: width 0.4s;
+            }
+            #conflict-modal-reason {
+                font-size: 12px;
+                color: #b0c0b0;
+                line-height: 1.7;
+                margin-bottom: 14px;
+            }
+            #conflict-modal-indicators {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .cfl-indicator {
+                font-size: 10px;
+                padding: 2px 8px;
+                border: 1px solid #2a3a2a;
+                border-radius: 2px;
+                color: #8b949e;
             }
             #clock {
                 padding: 0 15px;
@@ -283,6 +406,12 @@
                 <div class="weather-display">BAHRAIN: 32°C / CLEAR</div>
             </div>
 
+            <!-- CONFLICT INDEX BAR -->
+            <div id="conflict-bar">
+                <div id="conflict-bar-label">▶ GCC CONFLICT INDEX</div>
+                <div id="conflict-buttons"></div>
+            </div>
+
             <div id="map-container">
                 <div id="title-overlay">EXPAT RESCUE INTEL COMMAND</div>
                 <div id="map"></div>
@@ -336,6 +465,19 @@
                     </h3>
                     <div class="content" id="strike-content">Loading...</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- GCC Conflict Index Modal -->
+        <div id="conflict-modal">
+            <div id="conflict-modal-box">
+                <span id="conflict-modal-close" onclick="closeConflictModal()">✕</span>
+                <div id="conflict-modal-flag"></div>
+                <div id="conflict-modal-title"></div>
+                <div id="conflict-modal-badge"></div>
+                <div id="conflict-modal-meter"><div id="conflict-modal-fill"></div></div>
+                <div id="conflict-modal-reason"></div>
+                <div id="conflict-modal-indicators"></div>
             </div>
         </div>
 
@@ -752,6 +894,111 @@
                         ? map.addLayer(layers.weather)
                         : map.removeLayer(layers.weather),
                 );
+
+            // --- GCC CONFLICT INDEX ---
+            const CONFLICT_LEVELS = {
+                1: { name: "MINIMAL",  color: "#39ff14", bg: "rgba(57,255,20,0.12)" },
+                2: { name: "ELEVATED", color: "#aaff00", bg: "rgba(170,255,0,0.12)" },
+                3: { name: "GUARDED",  color: "#ffaa00", bg: "rgba(255,170,0,0.12)" },
+                4: { name: "HIGH",     color: "#ff6600", bg: "rgba(255,102,0,0.12)" },
+                5: { name: "SEVERE",   color: "#ff2a2a", bg: "rgba(255,42,42,0.12)" },
+                6: { name: "CRITICAL", color: "#ff0066", bg: "rgba(255,0,102,0.15)" },
+            };
+
+            const GCC_CONFLICT_DATA = [
+                {
+                    code: "UAE", flag: "🇦🇪", name: "United Arab Emirates",
+                    level: 2,
+                    summary: "Elevated regional tension; no active domestic conflict.",
+                    reason: "The UAE maintains a stable domestic environment with strong air-defense integration. However, it remains exposed to regional spillover from Yemen, Iranian proxy activity, and Gulf maritime incidents. THAAD and Patriot batteries are operational. UAE withdrew ground forces from Yemen in 2019 but retains proxy support roles. Iranian threats to UAE energy infrastructure remain credible.",
+                    indicators: ["Houthi missile range", "Iranian proxy activity", "Strait of Hormuz transit risk", "Critical infra targeting"],
+                },
+                {
+                    code: "BHR", flag: "🇧🇭", name: "Bahrain",
+                    level: 3,
+                    summary: "Guarded — hosts US 5th Fleet; elevated Iranian subversion risk.",
+                    reason: "Bahrain is geographically the most exposed GCC state to Iranian influence. Home to the US Naval Forces Central Command (NAVCENT/5th Fleet), it is a strategic target in any US-Iran escalation. Persistent Shia political grievances (majority population, minority Sunni government) are exploited by Iranian state media and the IRGC's extraterritorial operations. Houthi maritime drone activity in Gulf waters poses direct risk to naval traffic near Bahrain.",
+                    indicators: ["IRGC subversion ops", "5th Fleet target priority", "Shia domestic unrest risk", "Houthi maritime drones", "Iran proximity (300km)"],
+                },
+                {
+                    code: "QAT", flag: "🇶🇦", name: "Qatar",
+                    level: 2,
+                    summary: "Elevated — mediator role reduces direct risk; US CENTCOM present.",
+                    reason: "Qatar hosts Al Udeid Air Base, the largest US military presence in the Middle East, which simultaneously makes it a deterrence asset and a high-value adversary target. Qatar maintains unique diplomatic channels with Iran, Hamas, and the Taliban which buffer direct confrontation. The 2017–2021 GCC blockade formally ended but bilateral tensions persist with Saudi Arabia and UAE. LNG export infrastructure is a strategic vulnerability.",
+                    indicators: ["Al Udeid base (US CENTCOM)", "LNG export vulnerability", "Hamas mediation exposure", "Post-blockade tensions"],
+                },
+                {
+                    code: "KWT", flag: "🇰🇼", name: "Kuwait",
+                    level: 2,
+                    summary: "Elevated — historic Iraqi border instability; low current threat.",
+                    reason: "Kuwait has largely stable domestic security and active US basing agreements (Camp Arifjan, Ali Al Salem). Iranian ballistic missile envelopes cover all of Kuwait. IRGC-linked cells have been disrupted historically. Kuwait shares mediator instincts similar to Qatar, maintaining open diplomatic lines. Primary risk is escalation contagion from a US-Iran confrontation or Houthi maritime actions in northern Gulf.",
+                    indicators: ["US Camp Arifjan presence", "Iranian missile range coverage", "Northern Gulf Houthi risk", "IRGC cell history"],
+                },
+                {
+                    code: "SAU", flag: "🇸🇦", name: "Saudi Arabia",
+                    level: 5,
+                    summary: "SEVERE — active Houthi strikes on territory; oil infra targeted.",
+                    reason: "Saudi Arabia is in active armed conflict via its intervention in Yemen and faces direct Houthi retaliation. Ballistic missiles, cruise missiles, and one-way attack UAVs have struck Riyadh, Jeddah, Abha airport, and critical oil infrastructure including the 2019 Aramco Abqaiq attack (largest ever on global oil supply). Saudi air defenses intercept dozens of threats monthly. Peace negotiations with Houthis are ongoing but fragile. Iran provides weapons and targeting support to Houthi forces.",
+                    indicators: ["Active Houthi ballistic strikes", "Aramco infra targeting", "Saudi-led Yemen Coalition", "Iran weapons/tech supply", "Peace talks — fragile"],
+                },
+                {
+                    code: "OMN", flag: "🇴🇲", name: "Oman",
+                    level: 1,
+                    summary: "Minimal — active neutral mediator; lowest threat exposure in GCC.",
+                    reason: "Oman has pursued consistent neutrality across decades of regional conflict, maintaining open diplomatic channels with Iran, Israel, the US, and Houthi leadership simultaneously. It has served as the back-channel for US-Iran nuclear negotiations and Yemen ceasefire talks. No active conflict affects Omani territory. A small Dhofar border region historically had separatist activity (ended 1975). Maritime traffic through the Strait of Hormuz presents latent vulnerability.",
+                    indicators: ["Neutral mediator role", "Iran back-channel host", "Strait of Hormuz proximity", "No active domestic threat"],
+                },
+                {
+                    code: "IRN", flag: "🇮🇷", name: "Iran",
+                    level: 6,
+                    summary: "CRITICAL — proxy wars active; nuclear standoff; direct-strike capability.",
+                    reason: "Iran is the primary destabilizing actor in the Gulf region. It operates an extensive proxy network (Houthis in Yemen, Hezbollah in Lebanon/Syria, PMF in Iraq, PIJ in Gaza) and directly commands IRGC Quds Force operations across the region. Iran's ballistic missile arsenal is the largest in the Middle East with range covering all GCC capitals and US bases. The nuclear program, suspended JCPOA, and Israeli shadow war (assassinations, sabotage) maintain a continuous escalation risk. In 2024–2025, Iran launched direct missile and drone barrages at Israel — a historic escalation crossing regional red lines.",
+                    indicators: ["IRGC Quds Force ops", "Proxy network active (6 countries)", "Ballistic missiles 2,000km+ range", "Nuclear enrichment ongoing", "Direct Israel strike history", "US/Israeli strike threat"],
+                },
+            ];
+
+            function openConflictModal(code) {
+                const d = GCC_CONFLICT_DATA.find(c => c.code === code);
+                if (!d) return;
+                const lvl = CONFLICT_LEVELS[d.level];
+                document.getElementById("conflict-modal-flag").textContent = d.flag;
+                document.getElementById("conflict-modal-title").textContent = `${d.code} — ${d.name}`;
+                const badge = document.getElementById("conflict-modal-badge");
+                badge.textContent = `LEVEL ${d.level}: ${lvl.name}`;
+                badge.style.cssText = `background:${lvl.bg};color:${lvl.color};border:1px solid ${lvl.color};display:inline-block;padding:2px 10px;border-radius:3px;font-size:11px;font-weight:bold;margin-bottom:14px;`;
+                const fill = document.getElementById("conflict-modal-fill");
+                fill.style.width = `${(d.level / 6) * 100}%`;
+                fill.style.background = lvl.color;
+                document.getElementById("conflict-modal-reason").innerHTML =
+                    `<strong style="color:#ccc;">ASSESSMENT:</strong><br>${d.reason}`;
+                document.getElementById("conflict-modal-indicators").innerHTML =
+                    d.indicators.map(i => `<span class="cfl-indicator">${i}</span>`).join("");
+                document.getElementById("conflict-modal").classList.add("open");
+            }
+
+            function closeConflictModal() {
+                document.getElementById("conflict-modal").classList.remove("open");
+            }
+            document.getElementById("conflict-modal").addEventListener("click", function(e) {
+                if (e.target === this) closeConflictModal();
+            });
+
+            (function buildConflictBar() {
+                const container = document.getElementById("conflict-buttons");
+                container.style.cssText = "display:flex;align-items:center;gap:6px;flex-wrap:nowrap;";
+                GCC_CONFLICT_DATA.forEach(d => {
+                    const lvl = CONFLICT_LEVELS[d.level];
+                    const btn = document.createElement("div");
+                    btn.className = "cfl-btn";
+                    btn.innerHTML = `
+                        <span class="cfl-dot" style="background:${lvl.color};color:${lvl.color};"></span>
+                        <span class="cfl-name">${d.flag} ${d.code}</span>
+                        <span class="cfl-level" style="color:${lvl.color};">L${d.level}·${lvl.name}</span>`;
+                    btn.title = d.summary;
+                    btn.onclick = () => openConflictModal(d.code);
+                    container.appendChild(btn);
+                });
+            })();
 
             updateRadar();
             loadNews();
