@@ -347,14 +347,6 @@
             // --- 3. DATA FETCHING ---
             async function updateRadar() {
                 try {
-                    // Add this to your updateRadar function loop for satellites
-                    const satRes = await fetch("/api/satellites");
-                    const sats = await satRes.json();
-                    layers.sats.clearLayers(); 
-                    sats.forEach(sat => {
-                        const icon = L.divIcon({ className: 'marker-sat', iconSize: [6, 6] });
-                        L.marker([sat.lat, sat.lng], { icon }).bindTooltip(`SAT: ${sat.name}`).addTo(layers.sats);
-                    });
                     // 1. Fetch Flights
                     const fRes = await fetch("/api/flights");
                     const flights = await fRes.json();
