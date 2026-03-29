@@ -40,6 +40,9 @@ app.get("/api/flights", async (req, res) => {
                         ? "military"
                         : "civilian",
                 heading: p.track || 0,
+                speed: p.gs || 0,
+                squawk: p.squawk || "----",
+                category: p.category || "Unknown",
             }));
 
         res.json(mapped);

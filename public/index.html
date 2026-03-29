@@ -360,8 +360,22 @@
                             iconSize: [0, 0], // Size is handled by CSS borders
                             html: `<div style="transform: rotate(${f.heading}deg)"></div>`,
                         });
+                        const flightPopup = `
+                            <div style="font-family:monospace;font-size:12px;min-width:180px;line-height:1.7;">
+                                <div style="font-weight:bold;font-size:13px;color:#58a6ff;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                                    ✈ ${f.callsign || "UNKNOWN"}
+                                </div>
+                                <div><span style="color:#8b949e;">TYPE:</span> ${f.type === "military" ? "🟠 MILITARY" : "🟢 CIVILIAN"}</div>
+                                <div><span style="color:#8b949e;">ALT:</span> ${f.alt ? f.alt.toLocaleString() + " ft" : "N/A"}</div>
+                                <div><span style="color:#8b949e;">SPEED:</span> ${f.speed ? Math.round(f.speed) + " kts" : "N/A"}</div>
+                                <div><span style="color:#8b949e;">HDG:</span> ${Math.round(f.heading)}°</div>
+                                <div><span style="color:#8b949e;">SQUAWK:</span> ${f.squawk}</div>
+                                <div><span style="color:#8b949e;">LAT/LON:</span> ${f.lat.toFixed(3)}, ${f.lng.toFixed(3)}</div>
+                            </div>`;
                         L.marker([f.lat, f.lng], { icon })
-                            .bindTooltip(`FLIGHT: ${f.callsign}`)
+                            .bindPopup(flightPopup, { maxWidth: 220 })
+                            .on("mouseover", function() { this.openPopup(); })
+                            .on("mouseout", function() { this.closePopup(); })
                             .addTo(layers.flights);
                     });
 
