@@ -378,7 +378,7 @@
                             iconSize: [10, 18],
                         });
                         L.marker([s.lat, s.lng], { icon })
-                            .bindTooltip(`VESSEL: ${s.name}`)
+                            .bindTooltip(`VESSEL: ${s.name} | HDG: ${Math.round(s.heading)}° | SPD: ${s.speed} kts`)
                             .addTo(layers.ships);
                     });
 

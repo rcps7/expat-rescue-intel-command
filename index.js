@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const Parser = require("rss-parser");
 const axios = require("axios");
+const WebSocket = require("ws");
 const app = express();
 
 // RSS Parser with Browser Headers to bypass blocks
@@ -48,32 +49,71 @@ app.get("/api/flights", async (req, res) => {
     }
 });
 
-// 🚢 SHIPS (AIS Data)
-app.get("/api/ships", async (req, res) => {
-    // These coordinates are centered around the Persian Gulf
-    res.json([
-        {
-            name: "CARGO ALPHA",
-            lat: 26.5,
-            lng: 50.8,
-            type: "cargo",
-            heading: 45,
-        },
-        {
-            name: "USS PATROL",
-            lat: 25.8,
-            lng: 51.2,
-            type: "military",
-            heading: 120,
-        },
-        {
-            name: "FERRY ONE",
-            lat: 26.2,
-            lng: 50.6,
-            type: "civilian",
-            heading: 200,
-        },
-    ]);
+// 🚢 LIVE SHIP TRACKING (AISStream WebSocket)
+const AISSTREAM_KEY = process.env.AISSTREAM_API_KEY || "e0bf3e4d8906f9f39685f304920ca8d37a9a081f";
+const shipRegistry = new Map(); // MMSI -> ship data
+
+function connectAISStream() {
+    const ws = new WebSocket("wss://stream.aisstream.io/v0/stream");
+
+    ws.on("open", () => {
+        console.log("✅ AISStream connected — live ship feed active");
+        ws.send(JSON.stringify({
+            APIKey: AISSTREAM_KEY,
+            BoundingBoxes: [[[22.0, 48.0], [28.0, 58.0]]], // Persian Gulf
+            FilterMessageTypes: ["PositionReport"]
+        }));
+    });
+
+    ws.on("message", (data) => {
+        try {
+            const msg = JSON.parse(data);
+            const pos = msg.Message?.PositionReport;
+            const meta = msg.MetaData;
+            if (!pos || !meta) return;
+
+            const mmsi = String(meta.MMSI);
+            const lat = pos.Latitude;
+            const lng = pos.Longitude;
+            if (!lat || !lng || lat === 0 || lng === 0) return;
+
+            shipRegistry.set(mmsi, {
+                name: (meta.ShipName || mmsi).trim(),
+                mmsi,
+                lat,
+                lng,
+                heading: pos.TrueHeading < 360 ? pos.TrueHeading : (pos.Cog || 0),
+                speed: pos.Sog || 0,
+                type: pos.NavigationalStatus === 5 ? "moored" : "civilian",
+                updated: Date.now()
+            });
+        } catch (e) {}
+    });
+
+    ws.on("close", () => {
+        console.log("⚠️  AISStream disconnected — reconnecting in 10s");
+        setTimeout(connectAISStream, 10000);
+    });
+
+    ws.on("error", (err) => {
+        console.error("AISStream error:", err.message);
+        ws.terminate();
+    });
+}
+
+connectAISStream();
+
+// Purge ships not updated in last 10 minutes
+setInterval(() => {
+    const cutoff = Date.now() - 10 * 60 * 1000;
+    for (const [mmsi, ship] of shipRegistry) {
+        if (ship.updated < cutoff) shipRegistry.delete(mmsi);
+    }
+}, 60000);
+
+app.get("/api/ships", (req, res) => {
+    const ships = Array.from(shipRegistry.values());
+    res.json(ships.length > 0 ? ships : []);
 });
 
 // 🛰️ SATELLITES
