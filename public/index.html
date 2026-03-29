@@ -417,17 +417,49 @@
             ).addTo(map);
 
             // --- 2. TACTICAL LOGGING ---
-            function addLog(msg, link = null) {
+            const countryColors = {
+                UAE: "#58a6ff", BHR: "#39ff14", QAT: "#a855f7",
+                KWT: "#f59e0b", SAU: "#22d3ee", OMN: "#fb923c",
+                IRN: "#ff2a2a", GCC: "#8b949e"
+            };
+
+            function addLog(msg, link = null, country = null, timestamp = null) {
                 const log = document.getElementById("log-entries");
                 const entry = document.createElement("div");
-                entry.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
-                if (link) {
-                    entry.style.color = "var(--alert-red)";
-                    entry.style.fontWeight = "bold";
-                    entry.onclick = () =>
-                        window.open(link, "popup", "width=800,height=600");
-                }
+                const time = timestamp
+                    ? new Date(timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" })
+                    : new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" });
+                const dateStr = timestamp
+                    ? new Date(timestamp).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Riyadh" })
+                    : new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Riyadh" });
+                const color = country ? (countryColors[country] || "#8b949e") : "#8b949e";
+                const badge = country ? `<span style="background:${color}22;color:${color};border:1px solid ${color};padding:0 4px;border-radius:2px;font-size:9px;margin-right:5px;">${country}</span>` : "";
+                entry.innerHTML = `
+                    <span style="color:#555;font-size:9px;">${dateStr} ${time} AST</span><br>
+                    ${badge}<span style="${link ? 'color:var(--alert-red);' : ''}">${msg}</span>`;
+                entry.style.cursor = link ? "pointer" : "default";
+                if (link) entry.onclick = () => window.open(link, "_blank");
                 log.prepend(entry);
+                // Keep log from growing too large
+                while (log.children.length > 40) log.removeChild(log.lastChild);
+            }
+
+            async function loadThreats() {
+                try {
+                    const res = await fetch("/api/threats");
+                    const threats = await res.json();
+                    if (!threats.length) {
+                        addLog("Threat feed — no matching events detected");
+                        return;
+                    }
+                    threats.slice(0, 12).reverse().forEach(t => {
+                        const label = t.source ? `[${t.source}] ${t.title}` : t.title;
+                        addLog(label, t.url, t.country, t.timestamp);
+                    });
+                    addLog(`Threat scan complete — ${threats.length} events matched`);
+                } catch (e) {
+                    addLog("THREAT FEED: Datalink offline");
+                }
             }
 
             // --- 3. DATA FETCHING ---
@@ -724,9 +756,11 @@
             updateRadar();
             loadNews();
             loadStrikes();
+            loadThreats();
             setInterval(updateRadar, 15000);
             setInterval(loadNews, 300000);
             setInterval(loadStrikes, 600000);
+            setInterval(loadThreats, 300000);
         </script>
     </body>
 </html>

@@ -172,6 +172,89 @@ app.get("/api/news/:category", async (req, res) => {
     }
 });
 
+// 🚨 GCC LIVE THREAT FEED (Multi-source RSS — keyword filtered for GCC threats)
+const THREAT_FEEDS = [
+    { name: "BBC MidEast",  url: "https://feeds.bbci.co.uk/news/world/middle_east/rss.xml" },
+    { name: "Al Jazeera",   url: "https://www.aljazeera.com/xml/rss/all.xml" },
+    { name: "UPI",          url: "https://rss.upi.com/news/news.rss" },
+    { name: "AP News",      url: "https://rsshub.app/apnews/topics/mideast" },
+];
+
+const THREAT_KEYWORDS = [
+    "missile", "ballistic", "drone", "UAV", "airstrike", "air strike", "intercept",
+    "explosion", "attack", "Houthi", "IRGC", "rocket", "military", "strike", "threat",
+    "defense", "Gulf", "GCC", "Bahrain", "UAE", "Qatar", "Kuwait", "Saudi", "Oman", "Iran"
+];
+
+const COUNTRY_MAP = {
+    UAE:  ["UAE", "Abu Dhabi", "Dubai", "Emirates"],
+    BHR:  ["Bahrain", "Manama", "BDF"],
+    QAT:  ["Qatar", "Doha"],
+    KWT:  ["Kuwait"],
+    SAU:  ["Saudi", "Riyadh", "Jeddah", "KSA"],
+    OMN:  ["Oman", "Muscat"],
+    IRN:  ["Iran", "Tehran", "IRGC", "Khamenei", "Houthi"],
+};
+
+let threatCache = null;
+let threatCacheTime = 0;
+
+app.get("/api/threats", async (req, res) => {
+    if (threatCache && Date.now() - threatCacheTime < 5 * 60 * 1000) {
+        return res.json(threatCache);
+    }
+    try {
+        const feedResults = await Promise.all(
+            THREAT_FEEDS.map(f =>
+                parser.parseURL(f.url)
+                    .then(feed => feed.items.map(item => ({ ...item, _source: f.name })))
+                    .catch(() => [])
+            )
+        );
+
+        const all = feedResults.flat();
+        const seen = new Set();
+
+        const threats = all
+            .filter(item => {
+                const text = ((item.title || "") + " " + (item.contentSnippet || "")).toLowerCase();
+                return THREAT_KEYWORDS.some(kw => text.includes(kw.toLowerCase()));
+            })
+            .filter(item => {
+                const key = (item.title || "").slice(0, 60);
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .sort((a, b) => new Date(b.isoDate || 0) - new Date(a.isoDate || 0))
+            .slice(0, 20)
+            .map(item => {
+                const text = ((item.title || "") + " " + (item.contentSnippet || "")).toUpperCase();
+                let country = "GCC";
+                for (const [code, keywords] of Object.entries(COUNTRY_MAP)) {
+                    if (keywords.some(k => text.includes(k.toUpperCase()))) {
+                        country = code;
+                        break;
+                    }
+                }
+                return {
+                    title: item.title,
+                    url: item.link,
+                    country,
+                    timestamp: item.isoDate || new Date().toISOString(),
+                    source: item._source,
+                };
+            });
+
+        threatCache = threats;
+        threatCacheTime = Date.now();
+        res.json(threats);
+    } catch (e) {
+        console.error("Threat feed error:", e.message);
+        res.json([]);
+    }
+});
+
 // 🚨 GCC STRIKE DATA (from uae-dashboard GitHub repo — updated daily)
 const STRIKE_BASE = "https://raw.githubusercontent.com/takahser/uae-dashboard/main/public";
 const STRIKE_COUNTRIES = [
