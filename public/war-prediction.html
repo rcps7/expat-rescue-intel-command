@@ -2,6 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="theme-color" content="#040a04"/>
     <title>WAR PREDICTION ENGINE — MiroFish</title>
     <style>
         :root {
@@ -315,12 +320,112 @@
             margin: 8px 0;
             background: rgba(255,42,42,0.05);
         }
+
+        /* Back button — only shown on mobile */
+        #mob-back-btn {
+            display: none;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #1f3d1f;
+            color: var(--green);
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        /* ======================================
+           TABLET (600px – 1023px)
+           ====================================== */
+        @media (max-width: 1023px) {
+            #header { padding: 10px 14px; }
+            #header h1 { font-size: 13px; }
+            #main { flex-direction: column; overflow: auto; }
+            #sim-panel { border-right: none; border-bottom: var(--border); flex: none; }
+            #synthesis-panel { flex: none; }
+        }
+
+        /* ======================================
+           PHONE (< 600px)
+           ====================================== */
+        @media (max-width: 599px) {
+            body { font-size: 13px; }
+
+            /* Header: compact, back button visible */
+            #header {
+                padding: 10px 12px;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            #header h1 { font-size: 12px; letter-spacing: 1px; }
+            #header .sub { font-size: 9px; }
+            #powered { font-size: 8px; text-align: left; }
+            #mob-back-btn { display: block; }
+
+            /* Controls: stack vertically */
+            #controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 10px 12px;
+            }
+            #controls > * { width: 100%; }
+            #region-select { width: 100%; font-size: 13px; padding: 8px; }
+            #run-btn {
+                width: 100%;
+                font-size: 14px;
+                padding: 10px;
+                touch-action: manipulation;
+            }
+            #progress-wrap { width: 100%; }
+
+            /* Main: vertical stack, scrollable */
+            #main {
+                flex-direction: column;
+                overflow: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            #sim-panel {
+                border-right: none;
+                border-bottom: var(--border);
+                overflow-y: visible;
+                padding: 10px 12px;
+            }
+            #synthesis-panel {
+                overflow-y: visible;
+                padding: 10px 12px;
+            }
+
+            /* Agent cards: touch-friendly */
+            .agent-body { font-size: 12px; line-height: 1.6; }
+            .agent-role { font-size: 11px; }
+
+            /* Prob meters: larger */
+            .meter-label { font-size: 12px !important; }
+
+            /* Synthesis content */
+            #synthesis-content { padding: 10px; }
+            #synthesis-content h3 { font-size: 14px; }
+
+            /* Seed box: shorter on phone */
+            .seed-box { max-height: 80px; font-size: 9px; }
+
+            /* Safe area */
+            body { padding-bottom: env(safe-area-inset-bottom); }
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            body { min-height: -webkit-fill-available; }
+        }
     </style>
 </head>
 <body>
 
 <div id="header">
     <div>
+        <button id="mob-back-btn" onclick="history.length > 1 ? history.back() : window.location.href='/'">← BACK</button>
         <h1>🧠 WAR PREDICTION ENGINE</h1>
         <div class="sub">MiroFish Swarm Intelligence Algorithm — GCC / MENA Region Analysis</div>
     </div>

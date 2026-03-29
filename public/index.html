@@ -2,7 +2,11 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="theme-color" content="#050505" />
         <title>EXPAT RESCUE INTEL COMMAND</title>
         <link
             rel="stylesheet"
@@ -343,6 +347,263 @@
             .marker-airport-closed     { background: rgba(255,42,42,0.18);  border-color: #ff2a2a; color: #ff2a2a; }
             .marker-hospital           { background: rgba(255,255,255,0.12); border-color: #ffffff; color: #ffffff; }
             .marker-fuel               { background: rgba(255,200,0,0.15);   border-color: #ffc800; color: #ffc800; }
+
+            /* ============================================
+               MOBILE FLOATING ACTION BUTTONS
+               ============================================ */
+            .mob-fab {
+                display: none;
+                position: absolute;
+                z-index: 1200;
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                border: 1px solid #1f3d1f;
+                background: rgba(10,15,10,0.95);
+                color: var(--neon-green);
+                font-size: 16px;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            #mob-log-btn    { bottom: 12px; left: 12px; }
+            #mob-layers-btn { bottom: 12px; right: 12px; }
+            #mob-war-btn    { bottom: 64px; right: 12px; font-size:12px; width:42px; height:42px; color:#ff2a2a; border-color:#5a0000; background:rgba(30,0,0,0.95); }
+
+            /* Mobile panel drawer (shared) */
+            .mob-drawer {
+                display: none;
+                position: fixed;
+                z-index: 2000;
+                background: rgba(6,12,6,0.98);
+                border: var(--border);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Bottom tab bar for mobile */
+            #mob-tab-bar {
+                display: none;
+                flex-direction: row;
+                background: var(--panel-bg);
+                border-top: var(--border);
+                border-bottom: var(--border);
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                flex-shrink: 0;
+            }
+            #mob-tab-bar::-webkit-scrollbar { display: none; }
+            .mob-tab {
+                flex-shrink: 0;
+                padding: 8px 14px;
+                font-size: 10px;
+                font-family: "Courier New", monospace;
+                color: #8b949e;
+                cursor: pointer;
+                border-right: 1px solid #1a2e1a;
+                white-space: nowrap;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            .mob-tab.active { color: var(--neon-green); border-bottom: 2px solid var(--neon-green); }
+
+            /* Mobile bottom content area */
+            #mob-tab-content {
+                display: none;
+                height: 160px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+                background: var(--panel-bg);
+                padding: 8px 12px;
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+
+            /* Leaflet popups — touch friendly */
+            .leaflet-popup-content-wrapper {
+                background: #060e06 !important;
+                border: 1px solid #1f3d1f !important;
+                border-radius: 4px !important;
+                color: var(--neon-green) !important;
+                font-family: "Courier New", monospace !important;
+                font-size: 12px !important;
+            }
+            .leaflet-popup-tip { background: #060e06 !important; }
+            .leaflet-popup-close-button {
+                color: #8b949e !important;
+                font-size: 20px !important;
+                padding: 6px 8px !important;
+            }
+
+            /* ============================================
+               TABLET  (600px – 1023px)
+               ============================================ */
+            @media (max-width: 1023px) {
+                #mission-log  { width: 220px; max-height: 60%; }
+                #layer-controls { width: 155px; }
+                #bottom-panel { height: 150px; }
+                .data-col h3  { font-size: 12px; }
+                .data-col     { font-size: 11px; }
+                #title-overlay { font-size: 16px; }
+                #conflict-bar {
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                    scrollbar-width: none;
+                    flex-wrap: nowrap;
+                }
+                #conflict-bar::-webkit-scrollbar { display: none; }
+            }
+
+            /* ============================================
+               PHONE  (< 600px)
+               ============================================ */
+            @media (max-width: 599px) {
+                body { overflow: hidden; }
+
+                /* TOP BAR — compact */
+                #top-bar { height: 44px; padding: env(safe-area-inset-top) 0 0; }
+                #clock { font-size: 11px; min-width: auto; padding: 0 8px; border-right: var(--border); }
+                #ticker-wrap { display: none; }
+                .weather-display { font-size: 10px; padding: 0 8px; }
+                /* War prediction → invisible in top bar, replaced by FAB */
+                #top-bar > div:last-child { display: none; }
+
+                /* Title overlay */
+                #title-overlay { font-size: 11px; top: 8px; letter-spacing: 0.5px; }
+
+                /* CONFLICT BAR — horizontal scroll */
+                #conflict-bar {
+                    height: 36px;
+                    overflow-x: auto;
+                    -webkit-overflow-scrolling: touch;
+                    scrollbar-width: none;
+                    flex-wrap: nowrap;
+                    gap: 5px;
+                    padding: 0 8px;
+                }
+                #conflict-bar::-webkit-scrollbar { display: none; }
+                #conflict-bar-label { display: none; }
+                .cfl-btn { padding: 4px 8px; font-size: 10px; min-height: 28px; }
+
+                /* FLOATING PANELS — hidden on mobile, shown as drawers */
+                .floating-panel {
+                    display: none !important;
+                }
+
+                /* MAP — takes all remaining space */
+                #map-container { flex-grow: 1; min-height: 0; }
+
+                /* BOTTOM PANEL — hidden, replaced by tabs */
+                #bottom-panel { display: none; }
+
+                /* SHOW mobile elements */
+                .mob-fab    { display: flex; }
+                #mob-tab-bar    { display: flex; }
+                #mob-tab-content { display: block; }
+
+                /* Drawers */
+                #mob-log-drawer {
+                    display: block;
+                    bottom: 0; left: 0;
+                    width: 80vw;
+                    max-width: 300px;
+                    max-height: 60vh;
+                    border-right: var(--border);
+                    border-top: var(--border);
+                    transform: translateX(-105%);
+                    transition: transform 0.25s ease;
+                    padding: 10px;
+                }
+                #mob-log-drawer.open  { transform: translateX(0); }
+
+                #mob-layers-drawer {
+                    display: block;
+                    bottom: 0; right: 0;
+                    width: 180px;
+                    max-height: 60vh;
+                    border-left: var(--border);
+                    border-top: var(--border);
+                    transform: translateX(105%);
+                    transition: transform 0.25s ease;
+                    padding: 10px;
+                }
+                #mob-layers-drawer.open { transform: translateX(0); }
+
+                .drawer-title {
+                    font-size: 11px;
+                    font-weight: bold;
+                    color: var(--neon-green);
+                    border-bottom: 1px solid #1f3d1f;
+                    padding-bottom: 6px;
+                    margin-bottom: 8px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .drawer-close {
+                    cursor: pointer;
+                    color: #8b949e;
+                    font-size: 18px;
+                    padding: 2px 4px;
+                }
+                /* Log entries touch-friendly */
+                #mob-log-entries div {
+                    margin-bottom: 10px;
+                    border-bottom: 1px solid #1a331a;
+                    padding-bottom: 6px;
+                    font-size: 11px;
+                    line-height: 1.5;
+                }
+                /* Layer checkboxes touch-friendly */
+                #mob-layers-drawer label {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 7px 2px;
+                    font-size: 13px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #0a1a0a;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                #mob-layers-drawer input[type=checkbox] {
+                    width: 18px; height: 18px;
+                    accent-color: var(--neon-green);
+                    cursor: pointer;
+                    flex-shrink: 0;
+                }
+
+                /* Strike modal — full screen on phone */
+                #strike-modal > div { padding: 16px; }
+
+                /* Conflict modal — full screen on phone */
+                #conflict-modal-box { width: 95%; padding: 16px; max-height: 85vh; overflow-y: auto; }
+
+                /* Leaflet controls — bigger touch targets */
+                .leaflet-control-zoom a {
+                    width: 36px !important;
+                    height: 36px !important;
+                    line-height: 36px !important;
+                    font-size: 20px !important;
+                }
+
+                /* Ensure Leaflet attribution doesn't overlap FABs */
+                .leaflet-control-attribution {
+                    font-size: 8px !important;
+                    max-width: 50vw;
+                }
+
+                /* Safe area for iPhone X+ notch/home bar */
+                #mob-tab-bar { padding-bottom: env(safe-area-inset-bottom); }
+            }
+
+            /* Fix iOS 100vh safari issue */
+            @supports (-webkit-touch-callout: none) {
+                #app-container { height: -webkit-fill-available; }
+            }
         </style>
     </head>
     <body>
@@ -420,7 +681,7 @@
                 </div>
                 <div class="weather-display">BAHRAIN: 32°C / CLEAR</div>
                 <div
-                    onclick="window.open('/war-prediction.html','warpred','width=1100,height=760,resizable=yes')"
+                    onclick="openWarPrediction()"
                     title="MiroFish Swarm Intelligence — 5 agents, 3 rounds, live GCC data"
                     style="
                         cursor:pointer;
@@ -455,6 +716,7 @@
                 <div id="title-overlay">EXPAT RESCUE INTEL COMMAND</div>
                 <div id="map"></div>
 
+                <!-- Desktop floating panels -->
                 <div id="mission-log" class="floating-panel">
                     <h3>MISSION LOG</h3>
                     <div id="log-entries"></div>
@@ -471,7 +733,46 @@
                     <label><input type="checkbox" id="layer-fuel" /> ⛽ FUEL</label><br/>
                     <label><input type="checkbox" id="layer-routes" /> 🛣️ ROUTES</label>
                 </div>
+
+                <!-- Mobile FABs (hidden on desktop) -->
+                <div class="mob-fab" id="mob-log-btn" onclick="toggleMobDrawer('log')" title="Mission Log">📋</div>
+                <div class="mob-fab" id="mob-war-btn" onclick="openWarPrediction()" title="War Prediction">⚠</div>
+                <div class="mob-fab" id="mob-layers-btn" onclick="toggleMobDrawer('layers')" title="Map Layers">≡</div>
             </div>
+
+            <!-- Mobile Log Drawer -->
+            <div class="mob-drawer" id="mob-log-drawer">
+                <div class="drawer-title">
+                    <span>MISSION LOG</span>
+                    <span class="drawer-close" onclick="toggleMobDrawer('log')">✕</span>
+                </div>
+                <div id="mob-log-entries"></div>
+            </div>
+
+            <!-- Mobile Layers Drawer -->
+            <div class="mob-drawer" id="mob-layers-drawer">
+                <div class="drawer-title">
+                    <span>LAYERS</span>
+                    <span class="drawer-close" onclick="toggleMobDrawer('layers')">✕</span>
+                </div>
+                <label><input type="checkbox" checked id="m-layer-flights" onchange="syncLayer(this,'layer-flights')"/> ✈️ Flights</label>
+                <label><input type="checkbox" checked id="m-layer-ships" onchange="syncLayer(this,'layer-ships')"/> 🚢 Ships</label>
+                <label><input type="checkbox" id="m-layer-weather" onchange="syncLayer(this,'layer-weather')"/> ⛈️ Climate</label>
+                <div style="font-size:10px;color:#555;padding:6px 2px 2px;letter-spacing:1px;border-top:1px solid #0a1a0a;margin-top:4px;">GROUND INTEL</div>
+                <label><input type="checkbox" id="m-layer-airports" onchange="syncLayer(this,'layer-airports')"/> 🛬 Airports</label>
+                <label><input type="checkbox" id="m-layer-hospitals" onchange="syncLayer(this,'layer-hospitals')"/> 🏥 Medical</label>
+                <label><input type="checkbox" id="m-layer-fuel" onchange="syncLayer(this,'layer-fuel')"/> ⛽ Fuel</label>
+                <label><input type="checkbox" id="m-layer-routes" onchange="syncLayer(this,'layer-routes')"/> 🛣️ Routes</label>
+            </div>
+
+            <!-- Mobile Tab Bar -->
+            <div id="mob-tab-bar">
+                <div class="mob-tab active" onclick="showMobTab('iran')">🇮🇷 IRAN</div>
+                <div class="mob-tab" onclick="showMobTab('finance')">💰 FINANCE</div>
+                <div class="mob-tab" onclick="showMobTab('tech')">💻 CYBER</div>
+                <div class="mob-tab" onclick="showMobTab('alerts')">⚠️ STRIKES</div>
+            </div>
+            <div id="mob-tab-content"></div>
 
             <div id="bottom-panel">
                 <div class="data-col" id="col-iran">
@@ -605,8 +906,6 @@
             };
 
             function addLog(msg, link = null, country = null, timestamp = null) {
-                const log = document.getElementById("log-entries");
-                const entry = document.createElement("div");
                 const time = timestamp
                     ? new Date(timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" })
                     : new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" });
@@ -615,14 +914,25 @@
                     : new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Riyadh" });
                 const color = country ? (countryColors[country] || "#8b949e") : "#8b949e";
                 const badge = country ? `<span style="background:${color}22;color:${color};border:1px solid ${color};padding:0 4px;border-radius:2px;font-size:9px;margin-right:5px;">${country}</span>` : "";
-                entry.innerHTML = `
-                    <span style="color:#555;font-size:9px;">${dateStr} ${time} AST</span><br>
-                    ${badge}<span style="${link ? 'color:var(--alert-red);' : ''}">${msg}</span>`;
+                const html = `<span style="color:#555;font-size:9px;">${dateStr} ${time} AST</span><br>${badge}<span style="${link ? 'color:var(--alert-red);' : ''}">${msg}</span>`;
+
+                // Desktop log
+                const log = document.getElementById("log-entries");
+                const entry = document.createElement("div");
+                entry.innerHTML = html;
                 entry.style.cursor = link ? "pointer" : "default";
                 if (link) entry.onclick = () => window.open(link, "_blank");
                 log.prepend(entry);
-                // Keep log from growing too large
                 while (log.children.length > 40) log.removeChild(log.lastChild);
+
+                // Mobile log mirror
+                const mobLog = document.getElementById("mob-log-entries");
+                const mobEntry = document.createElement("div");
+                mobEntry.innerHTML = html;
+                mobEntry.style.cursor = link ? "pointer" : "default";
+                if (link) mobEntry.onclick = () => window.open(link, "_blank");
+                mobLog.prepend(mobEntry);
+                while (mobLog.children.length > 40) mobLog.removeChild(mobLog.lastChild);
             }
 
             async function loadThreats() {
@@ -1388,6 +1698,99 @@
             setInterval(loadStrikes, 600000);
             setInterval(loadThreats, 300000);
             setInterval(fetchConflictIndex, 300000);
+
+            /* ============================================
+               MOBILE HELPER FUNCTIONS
+               ============================================ */
+
+            // Open war prediction — popup on desktop, same-tab on mobile
+            function openWarPrediction() {
+                if (window.innerWidth < 600) {
+                    window.location.href = '/war-prediction.html';
+                } else {
+                    window.open('/war-prediction.html', 'warpred', 'width=1100,height=760,resizable=yes');
+                }
+            }
+
+            // Toggle log / layer drawers
+            function toggleMobDrawer(type) {
+                const drawer = document.getElementById(type === 'log' ? 'mob-log-drawer' : 'mob-layers-drawer');
+                const otherDrawer = document.getElementById(type === 'log' ? 'mob-layers-drawer' : 'mob-log-drawer');
+                otherDrawer.classList.remove('open');
+                drawer.classList.toggle('open');
+            }
+
+            // Close drawers when tapping map
+            document.getElementById('map').addEventListener('click', () => {
+                document.getElementById('mob-log-drawer').classList.remove('open');
+                document.getElementById('mob-layers-drawer').classList.remove('open');
+            });
+
+            // Sync mobile layer checkbox → desktop checkbox → trigger change event
+            function syncLayer(mobCheckbox, desktopId) {
+                const desktop = document.getElementById(desktopId);
+                if (desktop) {
+                    desktop.checked = mobCheckbox.checked;
+                    desktop.dispatchEvent(new Event('change'));
+                }
+            }
+
+            // Also sync desktop → mobile when desktop is used
+            ['layer-flights','layer-ships','layer-weather','layer-airports','layer-hospitals','layer-fuel','layer-routes'].forEach(id => {
+                const desktop = document.getElementById(id);
+                const mobId = 'm-' + id;
+                if (desktop) {
+                    desktop.addEventListener('change', () => {
+                        const mob = document.getElementById(mobId);
+                        if (mob) mob.checked = desktop.checked;
+                    });
+                }
+            });
+
+            // Mobile tab switching — clones content from desktop columns
+            const mobTabSources = {
+                iran:    'col-iran',
+                finance: 'col-finance',
+                tech:    'col-tech',
+                alerts:  'col-alerts'
+            };
+            function showMobTab(tabId) {
+                // Update active tab button
+                document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+                event.target.classList.add('active');
+                // Copy content from corresponding desktop column
+                const src = document.getElementById(mobTabSources[tabId]);
+                const dest = document.getElementById('mob-tab-content');
+                if (src && dest) {
+                    dest.innerHTML = src.innerHTML;
+                }
+            }
+            // Initialise first tab
+            (function initMobTab() {
+                const src = document.getElementById('col-iran');
+                const dest = document.getElementById('mob-tab-content');
+                if (src && dest) dest.innerHTML = src.innerHTML;
+            })();
+
+            // Re-sync active tab whenever desktop columns update
+            function refreshMobTab() {
+                const activeTab = document.querySelector('.mob-tab.active');
+                if (!activeTab) return;
+                const tabId = Object.keys(mobTabSources).find(k =>
+                    activeTab.textContent.toLowerCase().includes(k === 'iran' ? 'iran' :
+                        k === 'finance' ? 'finance' : k === 'tech' ? 'cyber' : 'strike')
+                );
+                if (tabId) {
+                    const src = document.getElementById(mobTabSources[tabId]);
+                    const dest = document.getElementById('mob-tab-content');
+                    if (src && dest) dest.innerHTML = src.innerHTML;
+                }
+            }
+            // Patch loadNews and loadStrikes to refresh mobile tab after they run
+            const _origLoadNews = loadNews;
+            loadNews = async function() { await _origLoadNews(); refreshMobTab(); };
+            const _origLoadStrikes = loadStrikes;
+            loadStrikes = async function() { await _origLoadStrikes(); refreshMobTab(); };
         </script>
     </body>
 </html>
