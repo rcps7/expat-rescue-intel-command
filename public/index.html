@@ -321,13 +321,28 @@
             }
 
             @keyframes scrollLeft {
-                0% {
-                    transform: translateX(0);
-                }
-                100% {
-                    transform: translateX(-100%);
-                }
+                0%   { transform: translateX(0); }
+                100% { transform: translateX(-100%); }
             }
+
+            /* --- GROUND INTEL MARKERS --- */
+            .marker-airport, .marker-hospital, .marker-fuel {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                font-size: 13px;
+                width: 26px !important;
+                height: 26px !important;
+                border: 2px solid;
+                box-shadow: 0 0 6px currentColor;
+                cursor: pointer;
+            }
+            .marker-airport-open       { background: rgba(57,255,20,0.18);  border-color: #39ff14; color: #39ff14; }
+            .marker-airport-restricted { background: rgba(255,170,0,0.18);  border-color: #ffaa00; color: #ffaa00; }
+            .marker-airport-closed     { background: rgba(255,42,42,0.18);  border-color: #ff2a2a; color: #ff2a2a; }
+            .marker-hospital           { background: rgba(255,255,255,0.12); border-color: #ffffff; color: #ffffff; }
+            .marker-fuel               { background: rgba(255,200,0,0.15);   border-color: #ffc800; color: #ffc800; }
         </style>
     </head>
     <body>
@@ -423,18 +438,14 @@
 
                 <div id="layer-controls" class="floating-panel">
                     <h3>LAYERS</h3>
-                    <label
-                        ><input type="checkbox" checked id="layer-flights" /> ✈️
-                        FLIGHTS</label
-                    ><br />
-                    <label
-                        ><input type="checkbox" checked id="layer-ships" /> 🚢
-                        SHIPS</label
-                    ><br />
-                    <label
-                        ><input type="checkbox" id="layer-weather" /> ⛈️
-                        CLIMATE</label
-                    >
+                    <label><input type="checkbox" checked id="layer-flights" /> ✈️ FLIGHTS</label><br/>
+                    <label><input type="checkbox" checked id="layer-ships" /> 🚢 SHIPS</label><br/>
+                    <label><input type="checkbox" id="layer-weather" /> ⛈️ CLIMATE</label>
+                    <div style="border-top:1px solid #1f3d1f;margin:7px 0 5px;padding-top:5px;font-size:9px;color:#8b949e;letter-spacing:1px;">GROUND INTEL</div>
+                    <label><input type="checkbox" id="layer-airports" /> 🛬 AIRPORTS</label><br/>
+                    <label><input type="checkbox" id="layer-hospitals" /> 🏥 MEDICAL</label><br/>
+                    <label><input type="checkbox" id="layer-fuel" /> ⛽ FUEL</label><br/>
+                    <label><input type="checkbox" id="layer-routes" /> 🛣️ ROUTES</label>
                 </div>
             </div>
 
@@ -543,10 +554,14 @@
             ).addTo(map);
 
             const layers = {
-                flights: L.layerGroup().addTo(map),
-                ships: L.layerGroup().addTo(map),
-                sats: L.layerGroup().addTo(map),
-                weather: L.tileLayer(
+                flights:   L.layerGroup().addTo(map),
+                ships:     L.layerGroup().addTo(map),
+                sats:      L.layerGroup().addTo(map),
+                airports:  L.layerGroup(),
+                hospitals: L.layerGroup(),
+                fuel:      L.layerGroup(),
+                routes:    L.layerGroup(),
+                weather:   L.tileLayer(
                     "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=f40cc357f6be024566a0c703c7320ea6",
                 ),
             };
@@ -878,6 +893,285 @@
                     container.innerHTML = "STRIKE DATALINK OFFLINE";
                 }
             }
+
+            // --- 4b. GROUND INTEL LAYERS ---
+
+            const GCC_AIRPORTS = [
+                // UAE
+                { iata:"DXB", name:"Dubai International Airport",       lat:25.2532, lng:55.3657, country:"UAE", status:"OPEN",       intl:true,  note:"World's busiest intl airport. 24/7 ops." },
+                { iata:"AUH", name:"Abu Dhabi International Airport",   lat:24.4330, lng:54.6511, country:"UAE", status:"OPEN",       intl:true,  note:"Home of Etihad Airways. US pre-clearance facility." },
+                { iata:"SHJ", name:"Sharjah International Airport",     lat:25.3285, lng:55.5172, country:"UAE", status:"OPEN",       intl:true,  note:"Major low-cost hub." },
+                { iata:"DWC", name:"Al Maktoum International (DWC)",    lat:24.8963, lng:55.1614, country:"UAE", status:"OPEN",       intl:true,  note:"Cargo focused. Passenger ops limited." },
+                { iata:"RKT", name:"Ras Al Khaimah Airport",            lat:25.6135, lng:55.9388, country:"UAE", status:"OPEN",       intl:false, note:"Regional. Low traffic." },
+                { iata:"AAN", name:"Al Ain International Airport",      lat:24.2617, lng:55.6092, country:"UAE", status:"OPEN",       intl:true,  note:"Regional hub, Abu Dhabi emirate." },
+                { iata:"FJR", name:"Fujairah International Airport",    lat:25.1122, lng:56.3240, country:"UAE", status:"OPEN",       intl:false, note:"Small regional airport." },
+                // Bahrain
+                { iata:"BAH", name:"Bahrain International Airport",     lat:26.2708, lng:50.6336, country:"BHR", status:"OPEN",       intl:true,  note:"Main intl hub. US 5th Fleet base adjacent. 24/7 ops." },
+                // Qatar
+                { iata:"DOH", name:"Hamad International Airport",       lat:25.2731, lng:51.6081, country:"QAT", status:"OPEN",       intl:true,  note:"State-of-the-art hub. Qatar Airways HQ. 24/7 ops." },
+                // Kuwait
+                { iata:"KWI", name:"Kuwait International Airport",      lat:29.2266, lng:47.9689, country:"KWT", status:"OPEN",       intl:true,  note:"Single terminal. Expansion ongoing." },
+                // Saudi Arabia
+                { iata:"RUH", name:"King Khalid Intl Airport (Riyadh)", lat:24.9576, lng:46.6988, country:"SAU", status:"OPEN",       intl:true,  note:"Primary hub for Saudi Arabia. 24/7 ops." },
+                { iata:"JED", name:"King Abdulaziz Intl Airport (Jeddah)",lat:21.6796,lng:39.1565,country:"SAU", status:"OPEN",       intl:true,  note:"Hajj terminal. Major western hub." },
+                { iata:"DMM", name:"King Fahd Intl Airport (Dammam)",   lat:26.4712, lng:49.7979, country:"SAU", status:"OPEN",       intl:true,  note:"Largest airport by area globally. Eastern Province hub." },
+                { iata:"MED", name:"Prince Mohammad bin Abdulaziz (Medina)",lat:24.5534,lng:39.7051,country:"SAU",status:"OPEN",      intl:true,  note:"Hajj/pilgrim traffic. Limited intl routes." },
+                { iata:"TUU", name:"Tabuk Regional Airport",            lat:28.3654, lng:36.6189, country:"SAU", status:"OPEN",       intl:false, note:"Near Jordan border. Military presence." },
+                { iata:"AHB", name:"Abha International Airport",        lat:18.2404, lng:42.6566, country:"SAU", status:"RESTRICTED", intl:true,  note:"⚠️ Houthi missile/drone attack history. Ops restricted. Verify before travel." },
+                { iata:"GIZ", name:"Jazan Regional Airport",            lat:16.9011, lng:42.5858, country:"SAU", status:"RESTRICTED", intl:false, note:"⚠️ Near Yemen border conflict zone. Limited ops." },
+                { iata:"NJR", name:"Najran Airport",                    lat:17.6114, lng:44.4192, country:"SAU", status:"RESTRICTED", intl:false, note:"⚠️ Active conflict proximity (Yemen). Verify NOTAMs." },
+                { iata:"YNB", name:"Yanbu Airport",                     lat:24.1442, lng:38.0634, country:"SAU", status:"OPEN",       intl:false, note:"Industrial city airport. Petrochemical corridor." },
+                { iata:"HAS", name:"Ha'il Regional Airport",            lat:27.4379, lng:41.6863, country:"SAU", status:"OPEN",       intl:false, note:"Central north Saudi. Limited routes." },
+                // Oman
+                { iata:"MCT", name:"Muscat International Airport",      lat:23.5932, lng:58.2844, country:"OMN", status:"OPEN",       intl:true,  note:"Main hub. Oman Air HQ. Expanded 2018." },
+                { iata:"SLL", name:"Salalah Airport",                   lat:17.0371, lng:54.0913, country:"OMN", status:"OPEN",       intl:true,  note:"Southern Oman. Seasonal tourism hub." },
+                { iata:"OHS", name:"Sohar Airport",                     lat:24.3860, lng:56.6254, country:"OMN", status:"OPEN",       intl:false, note:"Industrial port city airport." },
+                { iata:"DQM", name:"Duqm Airport",                      lat:19.5020, lng:57.6340, country:"OMN", status:"OPEN",       intl:false, note:"Strategic deep-water port area. Growing." },
+                { iata:"KHS", name:"Khasab Airport",                    lat:26.1710, lng:56.2406, country:"OMN", status:"OPEN",       intl:false, note:"Musandam exclave. Near Strait of Hormuz." },
+            ];
+
+            const GCC_HOSPITALS = [
+                // UAE
+                { name:"Rashid Hospital",                     lat:25.2381, lng:55.3235, country:"UAE", type:"Trauma/Emergency", note:"Major trauma center. 24/7 A&E. 760 beds." },
+                { name:"Sheikh Khalifa Medical City (AUH)",   lat:24.4219, lng:54.4349, country:"UAE", type:"General Hospital",  note:"Largest hospital in Abu Dhabi. 750 beds." },
+                { name:"American Hospital Dubai",             lat:25.2186, lng:55.2870, country:"UAE", type:"Private Hospital",  note:"JCI accredited. 24/7 emergency. English-speaking." },
+                { name:"Tawam Hospital (Al Ain)",             lat:24.2176, lng:55.7371, country:"UAE", type:"General Hospital",  note:"Al Ain. Johns Hopkins affiliated. Oncology center." },
+                { name:"Thumbay University Hospital (AJM)",   lat:25.3973, lng:55.4789, country:"UAE", type:"University Hospital",note:"Ajman. Medical city complex." },
+                // Bahrain
+                { name:"Salmaniya Medical Complex",           lat:26.2154, lng:50.5876, country:"BHR", type:"Government Hospital",note:"Main public hospital. Trauma and emergency." },
+                { name:"King Hamad University Hospital",      lat:26.1762, lng:50.5082, country:"BHR", type:"University Hospital",note:"Modern facility. 500 beds. South Riffa." },
+                { name:"BDF Royal Medical Services Hospital", lat:26.2012, lng:50.5428, country:"BHR", type:"Military Hospital",  note:"Bahrain Defence Force. Military + civilian." },
+                // Qatar
+                { name:"Hamad General Hospital",              lat:25.2894, lng:51.5072, country:"QAT", type:"Trauma/Emergency",  note:"Qatar's main public hospital. Level 1 trauma center." },
+                { name:"Sidra Medicine",                      lat:25.3217, lng:51.4382, country:"QAT", type:"Specialist Hospital",note:"Weill Cornell affiliated. Women and children specialty." },
+                { name:"Al Khor Hospital",                    lat:25.6836, lng:51.5006, country:"QAT", type:"General Hospital",  note:"Northern Qatar. Emergency services." },
+                // Kuwait
+                { name:"Mubarak Al-Kabeer Hospital",          lat:29.3198, lng:48.0021, country:"KWT", type:"General Hospital",  note:"Largest government hospital in Kuwait. 700 beds." },
+                { name:"Al Amiri Hospital",                   lat:29.3718, lng:47.9828, country:"KWT", type:"General Hospital",  note:"Central Kuwait City. Emergency services." },
+                { name:"Al Sabah Hospital",                   lat:29.3268, lng:47.9527, country:"KWT", type:"General Hospital",  note:"Major public hospital. Trauma care." },
+                // Saudi Arabia
+                { name:"King Fahd Medical City (Riyadh)",     lat:24.6875, lng:46.7223, country:"SAU", type:"Medical City",     note:"Largest medical complex in Saudi. 1,200 beds." },
+                { name:"King Faisal Specialist Hospital (RUH)",lat:24.6974,lng:46.7097, country:"SAU", type:"Specialist Hospital",note:"Referral center. Organ transplant. JCI accredited." },
+                { name:"King Abdulaziz Medical City (RUH)",   lat:24.8046, lng:46.6257, country:"SAU", type:"Military Hospital", note:"National Guard hospital. Emergency trauma." },
+                { name:"King Abdulaziz University Hospital (JED)",lat:21.4858,lng:39.2331,country:"SAU",type:"University Hospital",note:"Jeddah. Teaching hospital. 24/7 emergency." },
+                { name:"Security Forces Hospital (RUH)",      lat:24.7535, lng:46.6929, country:"SAU", type:"General Hospital",  note:"Riyadh. Civilian emergency access." },
+                // Oman
+                { name:"Royal Hospital Muscat",               lat:23.5974, lng:58.2286, country:"OMN", type:"Government Hospital",note:"Oman's main referral hospital. 600 beds." },
+                { name:"Sultan Qaboos University Hospital",   lat:23.5872, lng:58.1675, country:"OMN", type:"University Hospital",note:"Muscat. Teaching hospital. Emergency and trauma." },
+                { name:"Khoula Hospital",                     lat:23.5888, lng:58.3871, country:"OMN", type:"Trauma Hospital",   note:"Muscat. Major trauma center. Orthopedics specialty." },
+                { name:"Salalah Hospital",                    lat:17.0154, lng:54.0850, country:"OMN", type:"General Hospital",  note:"Southern Oman main hospital." },
+            ];
+
+            const GCC_FUEL = [
+                // UAE corridor
+                { name:"ADNOC — E11 Abu Dhabi (Musaffah)",  lat:24.3688, lng:54.4776, country:"UAE", brand:"ADNOC", note:"Major depot on Abu Dhabi–Dubai corridor. 24/7." },
+                { name:"ADNOC — E11 Dubai (Ghusais)",       lat:25.2661, lng:55.3745, country:"UAE", brand:"ADNOC", note:"Sheikh Zayed Road arterial. High capacity." },
+                { name:"EPPCO — Sharjah Industrial Area",   lat:25.3195, lng:55.4118, country:"UAE", brand:"EPPCO", note:"Sharjah industrial zone. Diesel available." },
+                { name:"ADNOC — E66 Hatta Road",            lat:24.9965, lng:55.8712, country:"UAE", brand:"ADNOC", note:"En route to Oman via Hatta border." },
+                { name:"ADNOC — Al Ain (Bawadi Mall area)", lat:24.2239, lng:55.7564, country:"UAE", brand:"ADNOC", note:"Al Ain city hub. Oman border access point." },
+                // Bahrain
+                { name:"BAPCO — Riffa North Station",       lat:26.1406, lng:50.5480, country:"BHR", brand:"BAPCO", note:"Main arterial south of Manama. King Fahd Causeway access." },
+                { name:"BAPCO — Manama Central",            lat:26.2154, lng:50.5761, country:"BHR", brand:"BAPCO", note:"Central Bahrain. 24/7." },
+                // Qatar
+                { name:"Woqod — Salwa Road (Mesaieed Rd)", lat:25.2110, lng:51.5209, country:"QAT", brand:"Woqod",  note:"South Doha. En route to Saudi border crossing." },
+                { name:"Woqod — Dukhan Highway",            lat:25.3200, lng:51.1620, country:"QAT", brand:"Woqod",  note:"West Qatar artery. Dukhan energy zone." },
+                { name:"Woqod — Al Khor North",             lat:25.6788, lng:51.5067, country:"QAT", brand:"Woqod",  note:"Northern Qatar towards causeway." },
+                // Kuwait
+                { name:"KNPC — 6th Ring Road",              lat:29.2748, lng:47.9372, country:"KWT", brand:"KNPC",  note:"Southwest Kuwait. Saudi border corridor." },
+                { name:"KNPC — Jahra Road",                 lat:29.3416, lng:47.6741, country:"KWT", brand:"KNPC",  note:"Western arterial. Iraq/Saudi direction." },
+                // Saudi Arabia
+                { name:"Saudi Aramco — King Fahd Causeway",lat:26.2303, lng:50.1629, country:"SAU", brand:"Aramco", note:"Entry point from Bahrain. High traffic." },
+                { name:"Saudi Aramco — Dammam Hwy 40",     lat:26.3927, lng:49.9777, country:"SAU", brand:"Aramco", note:"Trans-Arabian Highway. Dammam direction." },
+                { name:"Saudi Aramco — Riyadh Ring Road",   lat:24.6945, lng:46.8110, country:"SAU", brand:"Aramco", note:"East Riyadh logistics corridor." },
+                { name:"NAFT — Taif/Mecca Highway",         lat:21.3891, lng:40.4897, country:"SAU", brand:"NAFT",  note:"Mecca ring. Hajj corridor fuel point." },
+                // Oman
+                { name:"OmanOil — Muscat Expressway",       lat:23.6102, lng:58.4203, country:"OMN", brand:"OmanOil", note:"Main Muscat arterial. Airport vicinity." },
+                { name:"OmanOil — Sur Highway (Nizwa Rd)",  lat:23.3217, lng:57.5314, country:"OMN", brand:"OmanOil", note:"Muscat–Nizwa corridor. Interior access." },
+                { name:"OmanOil — Salalah City",            lat:17.0198, lng:54.1235, country:"OMN", brand:"OmanOil", note:"Southern Oman hub. Dhofar region." },
+            ];
+
+            const GCC_ROUTES = [
+                {
+                    id:"R1", name:"UAE Coastal Corridor (Dubai → Abu Dhabi)",
+                    color:"#39ff14", status:"CLEAR",
+                    note:"E11 Sheikh Zayed Rd. Primary evacuation artery UAE. 130km. Multiple fuel stops.",
+                    coords:[[25.2048,55.2708],[25.0657,55.1338],[24.8607,54.9890],[24.6877,54.7619],[24.4539,54.5835],[24.3088,54.3861]]
+                },
+                {
+                    id:"R2", name:"UAE → Oman via Hatta",
+                    color:"#39ff14", status:"CLEAR",
+                    note:"E44/E66 through Hatta mountain pass. UAE–Oman border at Hatta. Scenic but verify checkpoint status.",
+                    coords:[[25.2048,55.2708],[25.2000,55.5200],[25.1200,55.7800],[24.9965,55.8712],[24.8013,55.9790]]
+                },
+                {
+                    id:"R3", name:"Al Ain → Oman (Buraimi Border)",
+                    color:"#39ff14", status:"CLEAR",
+                    note:"Direct UAE–Oman land crossing at Buraimi/Al Ain. 160km to Muscat. Well-serviced.",
+                    coords:[[24.2239,55.7564],[24.1855,55.7861],[24.1580,55.8240],[24.1430,55.8560]]
+                },
+                {
+                    id:"R4", name:"King Fahd Causeway (Bahrain ↔ Saudi Arabia)",
+                    color:"#ffaa00", status:"CAUTION",
+                    note:"Only road link between Bahrain and mainland. 25km causeway. High traffic. Verify border ops before travel.",
+                    coords:[[26.2154,50.5761],[26.2303,50.3850],[26.2350,50.1629],[26.2390,50.0900]]
+                },
+                {
+                    id:"R5", name:"Kuwait → Saudi Arabia (King Fahad Highway)",
+                    color:"#ffaa00", status:"CAUTION",
+                    note:"Highway 80 / Route 5. Kuwait City to Saudi border at Khafji. ~100km. Monitor border ops.",
+                    coords:[[29.3718,47.9828],[29.2748,47.9372],[29.0900,47.8600],[28.8500,47.7500],[28.6176,47.6600]]
+                },
+                {
+                    id:"R6", name:"Saudi Arabia — Trans-Arabian Highway (Dammam → Riyadh)",
+                    color:"#39ff14", status:"CLEAR",
+                    note:"Highway 40. 400km. Well-maintained 6-lane expressway. Fuel depots every 80km.",
+                    coords:[[26.3927,49.9777],[26.1000,49.5000],[25.5000,48.5000],[25.0000,47.8000],[24.6945,46.8110]]
+                },
+                {
+                    id:"R7", name:"Oman Coastal Expressway (Muscat → Dubai)",
+                    color:"#39ff14", status:"CLEAR",
+                    note:"Route 1 / E44. ~400km. Coastal highway. Fujairah border crossing. Scenic and well serviced.",
+                    coords:[[23.5932,58.2844],[23.7500,58.5900],[24.0500,56.9800],[24.2800,56.7200],[25.1122,56.3240],[25.2048,55.2708]]
+                },
+                {
+                    id:"R8", name:"Saudi Arabia — Jeddah → Riyadh (Highway 40 West)",
+                    color:"#39ff14", status:"CLEAR",
+                    note:"Highway 40 westbound. Jeddah to Riyadh. 950km. Dual carriageway. Fuel and rest stops.",
+                    coords:[[21.6796,39.1565],[22.0500,40.2000],[23.0000,42.0000],[24.0000,44.0000],[24.6945,46.8110]]
+                },
+                {
+                    id:"R9", name:"Qatar — Doha → Abu Samra (Saudi Border)",
+                    color:"#ffaa00", status:"CAUTION",
+                    note:"Salwa Road / Highway 1. ~100km south to Saudi border at Abu Samra. Monitor diplomatic status.",
+                    coords:[[25.2731,51.6081],[25.2110,51.5209],[25.0500,51.3500],[24.8500,51.1000],[24.7330,50.9100]]
+                },
+                {
+                    id:"R10", name:"Oman Interior Route (Muscat → Salalah)",
+                    color:"#ffaa00", status:"CAUTION",
+                    note:"Highway 31 via Nizwa and Thumrait. ~1,000km. Remote desert. Ensure fuel before Nizwa. Summer extreme heat.",
+                    coords:[[23.5932,58.2844],[22.9333,57.5311],[20.8000,56.5000],[18.5000,54.8000],[17.0371,54.0913]]
+                },
+            ];
+
+            function makePopup(html) {
+                return L.popup({ className: "tactical-popup", maxWidth: 300 }).setContent(
+                    `<div style="font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#c9d1d9;">${html}</div>`
+                );
+            }
+
+            function buildAirportLayers() {
+                layers.airports.clearLayers();
+                GCC_AIRPORTS.forEach(ap => {
+                    const cls = ap.status === "OPEN" ? "marker-airport-open"
+                              : ap.status === "RESTRICTED" ? "marker-airport-restricted"
+                              : "marker-airport-closed";
+                    const statusColor = ap.status === "OPEN" ? "#39ff14" : ap.status === "RESTRICTED" ? "#ffaa00" : "#ff2a2a";
+                    const icon = L.divIcon({
+                        className: `marker-airport ${cls}`,
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13],
+                        html: "🛬"
+                    });
+                    const popup = makePopup(`
+                        <div style="font-weight:bold;font-size:13px;color:#58a6ff;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                            ✈ ${ap.iata} — ${ap.name}
+                        </div>
+                        <div><span style="color:#8b949e;">COUNTRY:</span> ${ap.country}</div>
+                        <div><span style="color:#8b949e;">STATUS:</span> <span style="color:${statusColor};font-weight:bold;">${ap.status}</span></div>
+                        <div><span style="color:#8b949e;">TYPE:</span> ${ap.intl ? "International" : "Regional"}</div>
+                        <div><span style="color:#8b949e;">COORDS:</span> ${ap.lat.toFixed(4)}, ${ap.lng.toFixed(4)}</div>
+                        <div style="margin-top:6px;color:#aaa;">${ap.note}</div>
+                    `);
+                    L.marker([ap.lat, ap.lng], { icon }).bindPopup(popup).addTo(layers.airports);
+                });
+            }
+
+            function buildHospitalLayers() {
+                layers.hospitals.clearLayers();
+                GCC_HOSPITALS.forEach(h => {
+                    const icon = L.divIcon({
+                        className: "marker-hospital",
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13],
+                        html: "🏥"
+                    });
+                    const popup = makePopup(`
+                        <div style="font-weight:bold;font-size:13px;color:#ffffff;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                            🏥 ${h.name}
+                        </div>
+                        <div><span style="color:#8b949e;">COUNTRY:</span> ${h.country}</div>
+                        <div><span style="color:#8b949e;">TYPE:</span> ${h.type}</div>
+                        <div><span style="color:#8b949e;">COORDS:</span> ${h.lat.toFixed(4)}, ${h.lng.toFixed(4)}</div>
+                        <div style="margin-top:6px;color:#aaa;">${h.note}</div>
+                    `);
+                    L.marker([h.lat, h.lng], { icon }).bindPopup(popup).addTo(layers.hospitals);
+                });
+            }
+
+            function buildFuelLayers() {
+                layers.fuel.clearLayers();
+                GCC_FUEL.forEach(f => {
+                    const icon = L.divIcon({
+                        className: "marker-fuel",
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13],
+                        html: "⛽"
+                    });
+                    const popup = makePopup(`
+                        <div style="font-weight:bold;font-size:13px;color:#ffc800;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                            ⛽ ${f.name}
+                        </div>
+                        <div><span style="color:#8b949e;">COUNTRY:</span> ${f.country}</div>
+                        <div><span style="color:#8b949e;">BRAND:</span> ${f.brand}</div>
+                        <div><span style="color:#8b949e;">COORDS:</span> ${f.lat.toFixed(4)}, ${f.lng.toFixed(4)}</div>
+                        <div style="margin-top:6px;color:#aaa;">${f.note}</div>
+                    `);
+                    L.marker([f.lat, f.lng], { icon }).bindPopup(popup).addTo(layers.fuel);
+                });
+            }
+
+            function buildRouteLayers() {
+                layers.routes.clearLayers();
+                GCC_ROUTES.forEach(r => {
+                    const line = L.polyline(r.coords, {
+                        color: r.color,
+                        weight: 3,
+                        opacity: 0.75,
+                        dashArray: r.status === "CAUTION" ? "8 5" : null,
+                    });
+                    const statusColor = r.status === "CLEAR" ? "#39ff14" : "#ffaa00";
+                    const popup = makePopup(`
+                        <div style="font-weight:bold;font-size:13px;color:${r.color};border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                            🛣️ ${r.name}
+                        </div>
+                        <div><span style="color:#8b949e;">STATUS:</span> <span style="color:${statusColor};font-weight:bold;">${r.status}</span></div>
+                        <div style="margin-top:6px;color:#aaa;">${r.note}</div>
+                    `);
+                    line.bindPopup(popup).addTo(layers.routes);
+                    // Start-point label marker
+                    const [slat, slng] = r.coords[0];
+                    L.marker([slat, slng], {
+                        icon: L.divIcon({
+                            className: "", iconSize: [0,0],
+                            html: `<div style="background:${r.color}22;border:1px solid ${r.color};color:${r.color};font-family:monospace;font-size:9px;padding:1px 4px;white-space:nowrap;border-radius:2px;">${r.id}</div>`
+                        })
+                    }).bindPopup(popup).addTo(layers.routes);
+                });
+            }
+
+            // Build all ground intel layers on load
+            buildAirportLayers();
+            buildHospitalLayers();
+            buildFuelLayers();
+            buildRouteLayers();
+
+            // Wire layer toggles
+            ["airports","hospitals","fuel","routes"].forEach(key => {
+                document.getElementById(`layer-${key}`).addEventListener("change", e => {
+                    if (e.target.checked) map.addLayer(layers[key]);
+                    else map.removeLayer(layers[key]);
+                });
+            });
 
             // --- 5. INITIALIZE ---
             setInterval(() => {
