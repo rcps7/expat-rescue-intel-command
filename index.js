@@ -442,3 +442,165 @@ app.listen(srvPort, "0.0.0.0", () => {
     -------------------------------------------
     `);
 });
+
+// ═══════════════════════════════════════════
+// 🧠 WAR PREDICTION ENGINE (MiroFish Algorithm)
+// Multi-agent swarm intelligence via Groq (free)
+// ═══════════════════════════════════════════
+
+app.use(express.json());
+
+const SWARM_AGENTS = [
+    { id: "military",    role: "Senior Military Intelligence Analyst",        style: "analytical, data-driven, focuses on force disposition and capability comparisons" },
+    { id: "geopolitical",role: "Geopolitical Risk Expert",                     style: "strategic, considers historical patterns and alliance dynamics" },
+    { id: "intel",       role: "Regional Intelligence Officer (GCC/MENA)",     style: "intelligence-community perspective, source-based, threat actor focused" },
+    { id: "diplomatic",  role: "Senior Diplomat and Conflict Mediator",        style: "de-escalation biased, considers backchannel diplomacy and off-ramps" },
+    { id: "risk",        role: "Quantitative Risk Assessor",                   style: "probability-driven, scenario-weighted, presents confidence intervals" },
+];
+
+async function callGroq(messages, apiKey) {
+    const r = await axios.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        { model: "llama3-70b-8192", messages, temperature: 0.7, max_tokens: 600 },
+        { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, timeout: 30000 }
+    );
+    return r.data.choices[0].message.content;
+}
+
+app.post("/api/war-prediction", async (req, res) => {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+        return res.status(503).json({ error: "NO_KEY", message: "GROQ_API_KEY not configured" });
+    }
+
+    const { region = "GCC" } = req.body;
+
+    // Set up SSE streaming
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    const send = (type, payload) => {
+        res.write(`data: ${JSON.stringify({ type, ...payload })}\n\n`);
+    };
+
+    try {
+        // === COLLECT LIVE INTELLIGENCE SEED DATA ===
+        send("status", { msg: "Collecting live intelligence data..." });
+
+        const [threatData, conflictData] = await Promise.all([
+            axios.get(`http://localhost:${srvPort}/api/threats`).then(r => r.data).catch(() => []),
+            axios.get(`http://localhost:${srvPort}/api/conflict-index`).then(r => r.data).catch(() => ({})),
+        ]);
+
+        const headlines = threatData.slice(0, 8).map(t => `[${t.country}] ${t.title}`).join("\n");
+        const conflictSummary = Object.entries(conflictData).map(([c, d]) =>
+            `${c}: Level ${d.level}/6 (score:${d.rawScore}, articles:${d.articleCount}, delta:${d.delta > 0 ? "+" : ""}${d.delta})`
+        ).join("\n");
+
+        const seedContext = `
+LIVE INTELLIGENCE FEED — ${new Date().toUTCString()}
+TARGET REGION: ${region}
+
+=== CONFLICT INDEX (real-time, last 6h) ===
+${conflictSummary || "No data"}
+
+=== RECENT THREAT HEADLINES ===
+${headlines || "No recent headlines"}
+
+=== ANALYSIS PARAMETERS ===
+- Time horizon: 30, 60, 90 days
+- Scope: Armed conflict escalation, military strikes, proxy warfare
+- Geographic focus: Persian Gulf / GCC region`;
+
+        send("seed", { context: seedContext });
+
+        // === ROUND 1: Independent Assessments ===
+        send("round", { n: 1, msg: "Round 1 — Independent agent assessments" });
+        const round1 = {};
+
+        for (const agent of SWARM_AGENTS) {
+            send("agent_start", { id: agent.id, role: agent.role, round: 1 });
+            const response = await callGroq([
+                {
+                    role: "system",
+                    content: `You are a ${agent.role}. Your analytical style is: ${agent.style}. Provide concise, expert analysis in 3-4 sentences. End with a probability estimate for armed conflict escalation in the next 90 days as: PROBABILITY: X%`
+                },
+                {
+                    role: "user",
+                    content: `Based on this live intelligence data, assess the risk of armed conflict escalation in the ${region} region:\n\n${seedContext}`
+                }
+            ], apiKey);
+            round1[agent.id] = response;
+            send("agent_output", { id: agent.id, role: agent.role, round: 1, text: response });
+        }
+
+        // === ROUND 2: Cross-pollination ===
+        send("round", { n: 2, msg: "Round 2 — Agents review peer assessments and refine" });
+        const round2 = {};
+        const round1Summary = SWARM_AGENTS.map(a => `[${a.role}]: ${round1[a.id]}`).join("\n\n");
+
+        for (const agent of SWARM_AGENTS) {
+            send("agent_start", { id: agent.id, role: agent.role, round: 2 });
+            const response = await callGroq([
+                {
+                    role: "system",
+                    content: `You are a ${agent.role}. Your style: ${agent.style}. Review peer assessments and refine your position. Agree or challenge specific points. End with updated: PROBABILITY: X%`
+                },
+                {
+                    role: "user",
+                    content: `Your peers' Round 1 assessments:\n\n${round1Summary}\n\nRefine your analysis of ${region} conflict risk. Challenge or support specific points from your colleagues.`
+                }
+            ], apiKey);
+            round2[agent.id] = response;
+            send("agent_output", { id: agent.id, role: agent.role, round: 2, text: response });
+        }
+
+        // === ROUND 3: Final Prediction ===
+        send("round", { n: 3, msg: "Round 3 — Final probability convergence" });
+        const round3 = {};
+        const round2Summary = SWARM_AGENTS.map(a => `[${a.role}]: ${round2[a.id]}`).join("\n\n");
+
+        for (const agent of SWARM_AGENTS) {
+            send("agent_start", { id: agent.id, role: agent.role, round: 3 });
+            const response = await callGroq([
+                {
+                    role: "system",
+                    content: `You are a ${agent.role}. Deliver your FINAL verdict. State: (1) Final probability % for armed escalation in 30/60/90 days, (2) top 2 triggering indicators to watch, (3) single most likely scenario. Format: FINAL_PROBABILITY_30D: X% | FINAL_PROBABILITY_60D: X% | FINAL_PROBABILITY_90D: X%`
+                },
+                {
+                    role: "user",
+                    content: `After 2 rounds of debate, deliver your final prediction for ${region}.\n\nPeer refinements:\n${round2Summary}`
+                }
+            ], apiKey);
+            round3[agent.id] = response;
+            send("agent_output", { id: agent.id, role: agent.role, round: 3, text: response });
+        }
+
+        // === SYNTHESIS: Swarm Convergence ===
+        send("status", { msg: "Computing swarm consensus..." });
+        const allOutputs = SWARM_AGENTS.map(a =>
+            `[${a.role}]:\nR1: ${round1[a.id]}\nR3: ${round3[a.id]}`
+        ).join("\n\n---\n\n");
+
+        const synthesis = await callGroq([
+            {
+                role: "system",
+                content: "You are the MiroFish Swarm Synthesis Engine. Aggregate 5 expert agents into a final consensus report. Structure: CONSENSUS PROBABILITY (30/60/90 day), KEY ESCALATION TRIGGERS, KEY DE-ESCALATION FACTORS, MOST LIKELY SCENARIO, WATCH LIST (top 3 indicators). Be precise and actionable."
+            },
+            {
+                role: "user",
+                content: `Synthesize these 5 expert final assessments into a GCC War Prediction consensus for ${region}:\n\n${allOutputs}\n\nSeed data:\n${seedContext}`
+            }
+        ], apiKey);
+
+        send("synthesis", { text: synthesis, agents: SWARM_AGENTS.length, rounds: 3, region });
+        send("done", { msg: "Simulation complete" });
+        res.end();
+
+    } catch (e) {
+        console.error("War prediction error:", e.message);
+        send("error", { msg: e.response?.data?.error?.message || e.message });
+        res.end();
+    }
+});

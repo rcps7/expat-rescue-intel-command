@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>WAR PREDICTION ENGINE — MiroFish</title>
+    <style>
+        :root {
+            --bg: #040a04;
+            --panel: rgba(8,14,8,0.98);
+            --green: #39ff14;
+            --amber: #ffaa00;
+            --red: #ff2a2a;
+            --blue: #58a6ff;
+            --purple: #a855f7;
+            --border: 1px solid #1a2e1a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--green);
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header {
+            background: var(--panel);
+            border-bottom: 2px solid #1a2e1a;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        #header h1 {
+            font-size: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px var(--green);
+        }
+        #header .sub {
+            font-size: 10px;
+            color: #8b949e;
+            margin-top: 2px;
+        }
+        #powered {
+            font-size: 9px;
+            color: #555;
+            text-align: right;
+        }
+        #powered a { color: #8b949e; text-decoration: none; }
+        #powered a:hover { color: var(--green); }
+
+        #controls {
+            padding: 12px 20px;
+            background: rgba(5,10,5,0.8);
+            border-bottom: var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        #controls label { color: #8b949e; font-size: 11px; }
+        #region-select {
+            background: #0a140a;
+            border: 1px solid #2a4a2a;
+            color: var(--green);
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        #run-btn {
+            background: linear-gradient(135deg, #0a2e0a, #1a4a1a);
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 6px 18px;
+            border-radius: 3px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-shadow: 0 0 6px var(--green);
+            transition: all 0.2s;
+        }
+        #run-btn:hover:not(:disabled) { background: linear-gradient(135deg, #1a4a1a, #2a6a2a); }
+        #run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        #status-bar {
+            font-size: 10px;
+            color: #8b949e;
+            flex-grow: 1;
+        }
+        #progress-wrap {
+            width: 160px;
+            height: 6px;
+            background: #1a2e1a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        #progress-fill {
+            height: 100%;
+            background: var(--green);
+            width: 0%;
+            transition: width 0.5s;
+            border-radius: 3px;
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        #main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 0;
+        }
+
+        /* LEFT: simulation stream */
+        #sim-panel {
+            flex: 1.1;
+            overflow-y: auto;
+            padding: 14px 16px;
+            border-right: var(--border);
+        }
+        #sim-panel::-webkit-scrollbar { width: 4px; }
+        #sim-panel::-webkit-scrollbar-thumb { background: #1a3a1a; }
+
+        /* RIGHT: synthesis */
+        #synthesis-panel {
+            flex: 0.9;
+            overflow-y: auto;
+            padding: 14px 16px;
+        }
+        #synthesis-panel::-webkit-scrollbar { width: 4px; }
+        #synthesis-panel::-webkit-scrollbar-thumb { background: #1a3a1a; }
+
+        .round-header {
+            color: var(--amber);
+            font-size: 11px;
+            font-weight: bold;
+            border-bottom: 1px solid #2a2a00;
+            padding: 6px 0 4px;
+            margin: 12px 0 8px;
+            letter-spacing: 1px;
+        }
+        .round-header:first-child { margin-top: 0; }
+
+        .agent-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #1a2e1a;
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-bottom: 1px solid #1a2e1a;
+            background: rgba(57,255,20,0.04);
+        }
+        .agent-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 4px var(--green);
+            flex-shrink: 0;
+        }
+        .agent-dot.thinking {
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+        .agent-role { font-size: 10px; color: #58a6ff; font-weight: bold; }
+        .agent-round-tag { font-size: 9px; color: #555; margin-left: auto; }
+        .agent-body {
+            padding: 8px 10px;
+            color: #c9d1d9;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+        .prob-highlight {
+            color: var(--amber);
+            font-weight: bold;
+        }
+
+        /* Seed panel */
+        .seed-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #1a3a1a;
+            border-radius: 3px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+            font-size: 10px;
+            color: #555;
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+        .seed-box::-webkit-scrollbar { width: 3px; }
+        .seed-box::-webkit-scrollbar-thumb { background: #1a3a1a; }
+
+        /* Synthesis */
+        #synthesis-content {
+            background: rgba(88,166,255,0.05);
+            border: 1px solid #1a3a5a;
+            border-radius: 4px;
+            padding: 14px;
+            margin-top: 8px;
+        }
+        #synthesis-content h3 {
+            color: var(--blue);
+            font-size: 13px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 6px var(--blue);
+        }
+        #synthesis-text {
+            color: #c9d1d9;
+            font-size: 11px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .prob-meter-wrap {
+            margin: 12px 0;
+        }
+        .prob-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+        .prob-label { color: #8b949e; min-width: 60px; }
+        .prob-bar-bg {
+            flex-grow: 1;
+            height: 8px;
+            background: #1a2e1a;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .prob-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        .prob-val { min-width: 36px; text-align: right; font-weight: bold; }
+
+        #setup-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        #setup-overlay.show { display: flex; }
+        #setup-box {
+            background: #060e06;
+            border: 1px solid #2a4a2a;
+            border-radius: 4px;
+            padding: 28px 32px;
+            max-width: 520px;
+            width: 90%;
+            font-family: "Courier New", monospace;
+        }
+        #setup-box h2 { color: var(--amber); margin-bottom: 14px; font-size: 15px; }
+        #setup-box p { color: #c9d1d9; font-size: 12px; line-height: 1.8; margin-bottom: 10px; }
+        #setup-box ol { color: #8b949e; font-size: 11px; padding-left: 18px; margin-bottom: 14px; }
+        #setup-box ol li { margin-bottom: 6px; }
+        #setup-box a { color: var(--green); text-decoration: none; }
+        #setup-box a:hover { text-decoration: underline; }
+        .setup-code {
+            background: #0a140a;
+            border: 1px solid #2a3a2a;
+            border-radius: 3px;
+            padding: 6px 10px;
+            font-size: 11px;
+            color: var(--green);
+            margin: 8px 0;
+            display: block;
+        }
+        #setup-close {
+            background: #0a2e0a;
+            border: 1px solid var(--green);
+            color: var(--green);
+            font-family: "Courier New", monospace;
+            padding: 6px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        #setup-close:hover { background: #1a4a1a; }
+
+        .placeholder-msg {
+            color: #2a4a2a;
+            font-size: 13px;
+            text-align: center;
+            padding: 40px 20px;
+            line-height: 2;
+        }
+        .error-msg {
+            color: var(--red);
+            font-size: 11px;
+            padding: 10px;
+            border: 1px solid var(--red);
+            border-radius: 3px;
+            margin: 8px 0;
+            background: rgba(255,42,42,0.05);
+        }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <div>
+        <h1>🧠 WAR PREDICTION ENGINE</h1>
+        <div class="sub">MiroFish Swarm Intelligence Algorithm — GCC / MENA Region Analysis</div>
+    </div>
+    <div id="powered">
+        Powered by <a href="https://github.com/666ghj/MiroFish" target="_blank">MiroFish</a> algorithm<br>
+        AI: Groq Llama 3 70B (free tier) · 5 agents · 3 rounds
+    </div>
+</div>
+
+<div id="controls">
+    <label>REGION:</label>
+    <select id="region-select">
+        <option value="GCC">GCC Overall</option>
+        <option value="SAU">Saudi Arabia</option>
+        <option value="IRN">Iran</option>
+        <option value="BHR">Bahrain</option>
+        <option value="UAE">UAE</option>
+        <option value="QAT">Qatar</option>
+        <option value="KWT">Kuwait</option>
+        <option value="OMN">Oman</option>
+        <option value="Yemen">Yemen Theatre</option>
+        <option value="Strait of Hormuz">Strait of Hormuz</option>
+    </select>
+    <button id="run-btn" onclick="runPrediction()">▶ RUN SIMULATION</button>
+    <span id="status-bar">Select region and run simulation</span>
+    <div id="progress-wrap"><div id="progress-fill"></div></div>
+</div>
+
+<div id="main">
+    <div id="sim-panel">
+        <div class="placeholder-msg">
+            🐟 Swarm agents standing by<br>
+            <span style="font-size:11px;color:#1a3a1a;">Select a region and press RUN SIMULATION to begin<br>5 expert agents · 3 debate rounds · live intelligence feed</span>
+        </div>
+    </div>
+    <div id="synthesis-panel">
+        <div style="color:#2a4a2a;font-size:11px;margin-bottom:10px;letter-spacing:1px;">SYNTHESIS OUTPUT</div>
+        <div id="synthesis-content" style="display:none;">
+            <h3>⚡ SWARM CONSENSUS</h3>
+            <div class="prob-meter-wrap" id="prob-meters"></div>
+            <div id="synthesis-text"></div>
+        </div>
+        <div id="synthesis-placeholder" class="placeholder-msg" style="padding:20px;">
+            Swarm consensus will appear here after simulation completes
+        </div>
+    </div>
+</div>
+
+<!-- Setup overlay -->
+<div id="setup-overlay">
+    <div id="setup-box">
+        <h2>⚙️ GROQ API KEY REQUIRED</h2>
+        <p>The War Prediction Engine uses <strong>Groq</strong> — a completely free AI inference service (no credit card required). You need to add your free API key to run simulations.</p>
+        <ol>
+            <li>Go to <a href="https://console.groq.com" target="_blank">console.groq.com</a> and create a free account</li>
+            <li>Navigate to <strong>API Keys</strong> → Create new key</li>
+            <li>Copy the key (starts with <code>gsk_...</code>)</li>
+            <li>In Replit, open <strong>Secrets</strong> (🔒 icon in left sidebar)</li>
+            <li>Add a new secret:</li>
+        </ol>
+        <code class="setup-code">Key: GROQ_API_KEY<br>Value: gsk_your_key_here</code>
+        <p style="color:#555;font-size:10px;">Free tier: 14,400 requests/day, 500,000 tokens/minute. More than enough for predictions.</p>
+        <button id="setup-close" onclick="document.getElementById('setup-overlay').classList.remove('show')">CLOSE</button>
+    </div>
+</div>
+
+<script>
+    let running = false;
+    let totalSteps = 0;
+    let currentStep = 0;
+
+    const AGENT_COLORS = {
+        military: "#ff6600",
+        geopolitical: "#a855f7",
+        intel: "#ff2a2a",
+        diplomatic: "#22d3ee",
+        risk: "#f59e0b"
+    };
+
+    function setProgress(pct) {
+        document.getElementById("progress-fill").style.width = `${Math.min(100, pct)}%`;
+    }
+
+    function setStatus(msg) {
+        document.getElementById("status-bar").textContent = msg;
+    }
+
+    function highlightProbs(text) {
+        return text
+            .replace(/(PROBABILITY:\s*\d+%)/g, '<span class="prob-highlight">$1</span>')
+            .replace(/(FINAL_PROBABILITY_\w+:\s*\d+%)/g, '<span class="prob-highlight">$1</span>');
+    }
+
+    function extractProbabilities(text) {
+        const probs = {};
+        const m30 = text.match(/FINAL_PROBABILITY_30D:\s*(\d+)%/);
+        const m60 = text.match(/FINAL_PROBABILITY_60D:\s*(\d+)%/);
+        const m90 = text.match(/FINAL_PROBABILITY_90D:\s*(\d+)%/);
+        if (m30) probs["30 days"] = parseInt(m30[1]);
+        if (m60) probs["60 days"] = parseInt(m60[1]);
+        if (m90) probs["90 days"] = parseInt(m90[1]);
+        return probs;
+    }
+
+    function colorForProb(p) {
+        if (p >= 70) return "#ff2a2a";
+        if (p >= 45) return "#ff6600";
+        if (p >= 25) return "#ffaa00";
+        return "#39ff14";
+    }
+
+    function renderProbMeters(probs) {
+        const container = document.getElementById("prob-meters");
+        if (!Object.keys(probs).length) { container.innerHTML = ""; return; }
+        container.innerHTML = Object.entries(probs).map(([label, p]) => `
+            <div class="prob-row">
+                <span class="prob-label">${label}</span>
+                <div class="prob-bar-bg">
+                    <div class="prob-bar-fill" style="width:0%;background:${colorForProb(p)};" data-target="${p}"></div>
+                </div>
+                <span class="prob-val" style="color:${colorForProb(p)};">${p}%</span>
+            </div>`).join("");
+        setTimeout(() => {
+            document.querySelectorAll(".prob-bar-fill").forEach(el => {
+                el.style.width = `${el.dataset.target}%`;
+            });
+        }, 100);
+    }
+
+    let roundDivs = {};
+    let agentCards = {};
+
+    function getOrCreateRound(n, label) {
+        if (!roundDivs[n]) {
+            const el = document.createElement("div");
+            el.className = "round-header";
+            el.textContent = `▷ ROUND ${n} — ${label || ""}`;
+            document.getElementById("sim-panel").appendChild(el);
+            roundDivs[n] = el;
+        }
+        return roundDivs[n];
+    }
+
+    function createAgentCard(id, role, round) {
+        const key = `${id}-${round}`;
+        const color = AGENT_COLORS[id] || "#39ff14";
+        const card = document.createElement("div");
+        card.className = "agent-card";
+        card.id = `card-${key}`;
+        card.innerHTML = `
+            <div class="agent-header">
+                <div class="agent-dot thinking" id="dot-${key}" style="background:${color};box-shadow:0 0 4px ${color};"></div>
+                <span class="agent-role" style="color:${color};">${role}</span>
+                <span class="agent-round-tag">R${round}</span>
+            </div>
+            <div class="agent-body" id="body-${key}">
+                <span style="color:#2a4a2a;">Analyzing...</span>
+            </div>`;
+        document.getElementById("sim-panel").appendChild(card);
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        agentCards[key] = card;
+        return card;
+    }
+
+    function updateAgentCard(id, role, round, text) {
+        const key = `${id}-${round}`;
+        const dot = document.getElementById(`dot-${key}`);
+        const body = document.getElementById(`body-${key}`);
+        if (dot) dot.classList.remove("thinking");
+        if (body) body.innerHTML = highlightProbs(text.replace(/\n/g, "<br>"));
+        const card = document.getElementById(`card-${key}`);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    async function runPrediction() {
+        if (running) return;
+        running = true;
+        roundDivs = {};
+        agentCards = {};
+        currentStep = 0;
+        totalSteps = 5 * 3 + 4; // 5 agents × 3 rounds + overhead
+
+        document.getElementById("run-btn").disabled = true;
+        document.getElementById("sim-panel").innerHTML = "";
+        document.getElementById("synthesis-content").style.display = "none";
+        document.getElementById("synthesis-placeholder").style.display = "block";
+        document.getElementById("synthesis-text").textContent = "";
+        document.getElementById("prob-meters").innerHTML = "";
+        setProgress(2);
+
+        const region = document.getElementById("region-select").value;
+        setStatus(`Initializing swarm for ${region}...`);
+
+        try {
+            const resp = await fetch("/api/war-prediction", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ region })
+            });
+
+            if (resp.status === 503) {
+                document.getElementById("setup-overlay").classList.add("show");
+                running = false;
+                document.getElementById("run-btn").disabled = false;
+                setStatus("API key required — see setup guide");
+                setProgress(0);
+                return;
+            }
+
+            if (!resp.ok) throw new Error(`Server error: ${resp.status}`);
+
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split("\n");
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (!line.startsWith("data: ")) continue;
+                    try {
+                        const evt = JSON.parse(line.slice(6));
+                        handleEvent(evt);
+                    } catch (_) {}
+                }
+            }
+
+        } catch (e) {
+            const errDiv = document.createElement("div");
+            errDiv.className = "error-msg";
+            errDiv.textContent = `Simulation error: ${e.message}`;
+            document.getElementById("sim-panel").appendChild(errDiv);
+        }
+
+        running = false;
+        document.getElementById("run-btn").disabled = false;
+        setProgress(100);
+        setStatus("Simulation complete");
+    }
+
+    function handleEvent(evt) {
+        currentStep++;
+        setProgress((currentStep / totalSteps) * 95);
+
+        if (evt.type === "status") {
+            setStatus(evt.msg);
+
+        } else if (evt.type === "seed") {
+            const label = document.createElement("div");
+            label.style.cssText = "color:#555;font-size:10px;margin-bottom:4px;letter-spacing:1px;";
+            label.textContent = "▷ INTELLIGENCE SEED DATA";
+            const seed = document.createElement("div");
+            seed.className = "seed-box";
+            seed.textContent = evt.context;
+            document.getElementById("sim-panel").appendChild(label);
+            document.getElementById("sim-panel").appendChild(seed);
+
+        } else if (evt.type === "round") {
+            getOrCreateRound(evt.n, evt.msg.split(" — ")[1] || "");
+            setStatus(`Round ${evt.n}/3 in progress...`);
+
+        } else if (evt.type === "agent_start") {
+            createAgentCard(evt.id, evt.role, evt.round);
+
+        } else if (evt.type === "agent_output") {
+            updateAgentCard(evt.id, evt.role, evt.round, evt.text);
+
+        } else if (evt.type === "synthesis") {
+            setStatus("Rendering consensus...");
+            document.getElementById("synthesis-placeholder").style.display = "none";
+            document.getElementById("synthesis-content").style.display = "block";
+
+            // Try to extract probabilities from all round 3 outputs
+            const allProbs = {};
+            document.querySelectorAll(".agent-body").forEach(b => {
+                const p = extractProbabilities(b.textContent);
+                Object.entries(p).forEach(([k,v]) => {
+                    if (!allProbs[k]) allProbs[k] = [];
+                    allProbs[k].push(v);
+                });
+            });
+            const avgProbs = {};
+            Object.entries(allProbs).forEach(([k, vals]) => {
+                avgProbs[k] = Math.round(vals.reduce((a,b)=>a+b,0) / vals.length);
+            });
+
+            // Also try from synthesis text directly
+            const synProbs = extractProbabilities(evt.text);
+            Object.assign(avgProbs, synProbs);
+
+            renderProbMeters(avgProbs);
+
+            const clean = evt.text
+                .replace(/FINAL_PROBABILITY_\w+:\s*\d+%\s*\|?\s*/g, "")
+                .trim();
+            document.getElementById("synthesis-text").innerHTML = highlightProbs(clean.replace(/\n/g, "<br>"));
+
+            const tag = document.createElement("div");
+            tag.style.cssText = "margin-top:14px;font-size:10px;color:#555;border-top:1px solid #1a2e1a;padding-top:8px;";
+            tag.innerHTML = `${evt.agents} agents · ${evt.rounds} rounds · ${evt.region} · ${new Date().toLocaleString("en-US",{timeZone:"Asia/Riyadh"})} AST`;
+            document.getElementById("synthesis-content").appendChild(tag);
+
+        } else if (evt.type === "error") {
+            const errDiv = document.createElement("div");
+            errDiv.className = "error-msg";
+            errDiv.textContent = `Error: ${evt.msg}`;
+            document.getElementById("sim-panel").appendChild(errDiv);
+
+        } else if (evt.type === "done") {
+            setStatus("Simulation complete — swarm consensus reached");
+            setProgress(100);
+        }
+    }
+</script>
+</body>
+</html>
