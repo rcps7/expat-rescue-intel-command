@@ -298,9 +298,9 @@
                     <h3>CYBER / TECH</h3>
                     <div class="content">Loading...</div>
                 </div>
-                <div class="data-col" id="col-alerts">
-                    <h3>GCC ALERTS</h3>
-                    <div class="content">No threats detected.</div>
+                <div class="data-col" id="col-alerts" style="flex:1.4">
+                    <h3>⚠️ GCC STRIKE DATA <span id="strike-updated" style="font-size:9px;color:#8b949e;font-weight:normal;"></span></h3>
+                    <div class="content" id="strike-content">Loading...</div>
                 </div>
             </div>
         </div>
@@ -447,33 +447,43 @@
                 });
             }
 
-            async function loadAlerts() {
-                const container = document.querySelector(
-                    "#col-alerts .content",
-                );
+            async function loadStrikes() {
+                const container = document.getElementById("strike-content");
                 try {
-                    const res = await fetch("/api/alerts");
-                    const data = await res.json();
-                    if (data.active_threats && data.active_threats.length > 0) {
-                        container.innerHTML = data.active_threats
-                            .map(
-                                (t) => `
-                            <div style="border:1px solid var(--alert-red); padding:5px; margin-bottom:5px; cursor:pointer;" onclick="window.open('${t.link}', 'popup', 'width=800,height=600')">
-                                <span style="color:var(--alert-red)">⚠️ ${t.type}</span><br><small>${t.region}</small>
-                            </div>
-                        `,
-                            )
-                            .join("");
-                        addLog(
-                            `THREAT DETECTED: ${data.active_threats[0].type}`,
-                            data.active_threats[0].link,
-                        );
-                    } else {
-                        container.innerHTML =
-                            "<span style='color:var(--neon-green)'>[ STATUS: CLEAR ]</span>";
+                    const res = await fetch("/api/strikes");
+                    const countries = await res.json();
+                    if (!countries.length) { container.innerHTML = "DATALINK OFFLINE"; return; }
+
+                    const updatedAt = countries.find(c => c.lastUpdated)?.lastUpdated;
+                    if (updatedAt) {
+                        document.getElementById("strike-updated").innerText =
+                            "— src: github/takahser/uae-dashboard · " + new Date(updatedAt).toLocaleDateString();
                     }
+
+                    container.innerHTML = countries.map(c => {
+                        if (c.error) return `<div style="color:#555;font-size:10px;">${c.label}: OFFLINE</div>`;
+                        const cum = c.cumulative;
+                        const interceptRate = cum.ballisticDetected
+                            ? Math.round((cum.ballisticIntercepted / cum.ballisticDetected) * 100) : 0;
+                        const droneRate = cum.dronesDetected
+                            ? Math.round((cum.dronesIntercepted / cum.dronesDetected) * 100) : 0;
+                        return `
+                        <div style="border-bottom:1px solid #1a331a;padding:4px 0;font-size:10px;line-height:1.6;">
+                            <span style="color:var(--neon-green);font-weight:bold;">${c.label}</span>
+                            <span style="float:right;color:${cum.ballisticImpacted > 0 ? 'var(--alert-red)' : '#39ff14'};">
+                                ${cum.ballisticImpacted > 0 ? '⚠️ ' + cum.ballisticImpacted + ' BALLISTIC IMPACTS' : '✓ NO IMPACTS'}
+                            </span><br>
+                            <span style="color:#8b949e;">Ballistic:</span> ${cum.ballisticDetected} det / ${cum.ballisticIntercepted} int (${interceptRate}%) |
+                            <span style="color:#8b949e;">Drones:</span> ${cum.dronesDetected} det / ${cum.dronesIntercepted} int (${droneRate}%) |
+                            <span style="color:#ff6b6b;">Impacted:</span> ${cum.dronesImpacted} drones
+                            ${cum.killed > 0 ? `<br><span style="color:var(--alert-red);">☠ KIA: ${cum.killed} | WIA: ${cum.injured}</span>` : ''}
+                        </div>`;
+                    }).join("");
+
+                    const totalImpacts = countries.reduce((s, c) => s + (c.cumulative?.ballisticImpacted || 0), 0);
+                    if (totalImpacts > 0) addLog(`GCC STRIKE DATA: ${totalImpacts} ballistic impacts confirmed`);
                 } catch (e) {
-                    container.innerHTML = "DATALINK OFFLINE";
+                    container.innerHTML = "STRIKE DATALINK OFFLINE";
                 }
             }
 
@@ -495,10 +505,10 @@
 
             updateRadar();
             loadNews();
-            loadAlerts();
+            loadStrikes();
             setInterval(updateRadar, 15000);
             setInterval(loadNews, 300000);
-            setInterval(loadAlerts, 60000);
+            setInterval(loadStrikes, 600000);
         </script>
     </body>
 </html>

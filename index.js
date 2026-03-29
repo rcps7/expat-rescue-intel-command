@@ -172,21 +172,68 @@ app.get("/api/news/:category", async (req, res) => {
     }
 });
 
-// 🚨 GCC ALERTS
-app.get("/api/alerts", async (req, res) => {
-    res.json({
-        status: "DEFCON 3",
-        active_threats: [
-            {
-                type: "UAV ACTIVITY",
-                region: "Northern Gulf / Bushehr Sector",
-                details:
-                    "Low-altitude drone swarm detected. Regional air defense on high alert.",
-                timestamp: new Date().toISOString(),
-                link: "https://pravasiintel.com/alerts",
-            },
-        ],
-    });
+// 🚨 GCC STRIKE DATA (from uae-dashboard GitHub repo — updated daily)
+const STRIKE_BASE = "https://raw.githubusercontent.com/takahser/uae-dashboard/main/public";
+const STRIKE_COUNTRIES = [
+    { key: "uae",    label: "🇦🇪 UAE",    flag: "UAE" },
+    { key: "saudi",  label: "🇸🇦 SAUDI",  flag: "KSA" },
+    { key: "qatar",  label: "🇶🇦 QATAR",  flag: "QAT" },
+    { key: "kuwait", label: "🇰🇼 KUWAIT", flag: "KWT" },
+    { key: "bahrain",label: "🇧🇭 BAHRAIN",flag: "BHR" },
+    { key: "oman",   label: "🇴🇲 OMAN",   flag: "OMN" },
+];
+
+let strikeCache = null;
+let strikeCacheTime = 0;
+
+app.get("/api/strikes", async (req, res) => {
+    if (strikeCache && Date.now() - strikeCacheTime < 10 * 60 * 1000) {
+        return res.json(strikeCache);
+    }
+    try {
+        const results = await Promise.all(
+            STRIKE_COUNTRIES.map(async (c) => {
+                try {
+                    const r = await axios.get(`${STRIKE_BASE}/data-${c.key}.json`, { timeout: 8000 });
+                    const d = r.data;
+                    const cum = d.cumulative || {};
+                    const lastDay = (d.daily || []).slice(-1)[0] || {};
+                    return {
+                        key: c.key,
+                        label: c.label,
+                        lastUpdated: d.lastUpdated,
+                        cumulative: {
+                            ballisticDetected: cum.ballisticDetected || 0,
+                            ballisticIntercepted: cum.ballisticIntercepted || 0,
+                            ballisticImpacted: cum.ballisticImpacted || 0,
+                            dronesDetected: cum.dronesDetected || 0,
+                            dronesIntercepted: cum.dronesIntercepted || 0,
+                            dronesImpacted: cum.dronesImpacted || 0,
+                            cruiseDetected: cum.cruiseDetected || 0,
+                            cruiseIntercepted: cum.cruiseIntercepted || 0,
+                            cruiseImpacted: cum.cruiseImpacted || 0,
+                            killed: cum.killed || 0,
+                            injured: cum.injured || 0,
+                        },
+                        latest: {
+                            date: lastDay.date || null,
+                            label: lastDay.label || null,
+                            total: lastDay.total || 0,
+                            ballisticDetected: lastDay.ballisticDetected || 0,
+                            dronesDetected: lastDay.dronesDetected || 0,
+                        },
+                    };
+                } catch (e) {
+                    return { key: c.key, label: c.label, error: true };
+                }
+            })
+        );
+        strikeCache = results;
+        strikeCacheTime = Date.now();
+        res.json(results);
+    } catch (e) {
+        res.json([]);
+    }
 });
 
 // Fallback for SPA (Single Page Application)
