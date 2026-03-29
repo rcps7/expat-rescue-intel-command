@@ -957,22 +957,45 @@
                 },
             ];
 
+            // Live conflict index state
+            let liveConflictIndex = {};
+
             function openConflictModal(code) {
                 const d = GCC_CONFLICT_DATA.find(c => c.code === code);
                 if (!d) return;
-                const lvl = CONFLICT_LEVELS[d.level];
+                const live = liveConflictIndex[code];
+                const currentLevel = live ? live.level : d.level;
+                const lvl = CONFLICT_LEVELS[currentLevel];
+
                 document.getElementById("conflict-modal-flag").textContent = d.flag;
                 document.getElementById("conflict-modal-title").textContent = `${d.code} — ${d.name}`;
+
                 const badge = document.getElementById("conflict-modal-badge");
-                badge.textContent = `LEVEL ${d.level}: ${lvl.name}`;
+                const deltaTag = live && live.delta !== 0
+                    ? ` <span style="font-size:10px;opacity:0.8;">(${live.delta > 0 ? "▲" : "▼"}${Math.abs(live.delta)} from baseline)</span>`
+                    : "";
+                badge.innerHTML = `LEVEL ${currentLevel}: ${lvl.name}${deltaTag}`;
                 badge.style.cssText = `background:${lvl.bg};color:${lvl.color};border:1px solid ${lvl.color};display:inline-block;padding:2px 10px;border-radius:3px;font-size:11px;font-weight:bold;margin-bottom:14px;`;
+
                 const fill = document.getElementById("conflict-modal-fill");
-                fill.style.width = `${(d.level / 6) * 100}%`;
+                fill.style.width = `${(currentLevel / 6) * 100}%`;
                 fill.style.background = lvl.color;
-                document.getElementById("conflict-modal-reason").innerHTML =
-                    `<strong style="color:#ccc;">ASSESSMENT:</strong><br>${d.reason}`;
+
+                let reasonHtml = `<strong style="color:#ccc;">ASSESSMENT:</strong><br>${d.reason}`;
+                if (live && live.triggers && live.triggers.length) {
+                    reasonHtml += `<br><br><strong style="color:#ffaa00;">LIVE TRIGGERS (last 6h):</strong><br>`;
+                    reasonHtml += live.triggers.map(t =>
+                        `<span style="color:#aaa;font-size:11px;">• ${t}</span>`
+                    ).join("<br>");
+                }
+                if (live) {
+                    reasonHtml += `<br><br><span style="color:#555;font-size:10px;">Index score: ${live.rawScore} | Articles matched: ${live.articleCount} | Updated: ${new Date(live.updatedAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})} AST</span>`;
+                }
+                document.getElementById("conflict-modal-reason").innerHTML = reasonHtml;
+
                 document.getElementById("conflict-modal-indicators").innerHTML =
                     d.indicators.map(i => `<span class="cfl-indicator">${i}</span>`).join("");
+
                 document.getElementById("conflict-modal").classList.add("open");
             }
 
@@ -983,6 +1006,42 @@
                 if (e.target === this) closeConflictModal();
             });
 
+            function updateConflictButton(code, level, prevLevel) {
+                const lvl = CONFLICT_LEVELS[level];
+                const btn = document.getElementById(`cfl-btn-${code}`);
+                if (!btn) return;
+                btn.querySelector(".cfl-dot").style.background = lvl.color;
+                btn.querySelector(".cfl-dot").style.color = lvl.color;
+                btn.querySelector(".cfl-level").textContent = `L${level}·${lvl.name}`;
+                btn.querySelector(".cfl-level").style.color = lvl.color;
+                // Flash animation on level change
+                if (prevLevel !== undefined && prevLevel !== level) {
+                    btn.style.transition = "background 0.2s";
+                    btn.style.background = level > prevLevel ? "rgba(255,42,42,0.3)" : "rgba(57,255,20,0.2)";
+                    setTimeout(() => { btn.style.background = "rgba(255,255,255,0.04)"; }, 1200);
+                    const arrow = level > prevLevel ? "▲" : "▼";
+                    const dir = level > prevLevel ? "ESCALATED" : "DE-ESCALATED";
+                    addLog(`[CONFLICT INDEX] ${code} ${dir} → LEVEL ${level} ${arrow}`, null, code);
+                }
+            }
+
+            async function fetchConflictIndex() {
+                try {
+                    const res = await fetch("/api/conflict-index");
+                    const data = await res.json();
+                    GCC_CONFLICT_DATA.forEach(d => {
+                        const prev = liveConflictIndex[d.code];
+                        const curr = data[d.code];
+                        if (curr) {
+                            updateConflictButton(d.code, curr.level, prev ? prev.level : undefined);
+                        }
+                    });
+                    liveConflictIndex = data;
+                } catch (e) {
+                    console.warn("Conflict index fetch failed:", e.message);
+                }
+            }
+
             (function buildConflictBar() {
                 const container = document.getElementById("conflict-buttons");
                 container.style.cssText = "display:flex;align-items:center;gap:6px;flex-wrap:nowrap;";
@@ -990,6 +1049,7 @@
                     const lvl = CONFLICT_LEVELS[d.level];
                     const btn = document.createElement("div");
                     btn.className = "cfl-btn";
+                    btn.id = `cfl-btn-${d.code}`;
                     btn.innerHTML = `
                         <span class="cfl-dot" style="background:${lvl.color};color:${lvl.color};"></span>
                         <span class="cfl-name">${d.flag} ${d.code}</span>
@@ -1004,10 +1064,12 @@
             loadNews();
             loadStrikes();
             loadThreats();
+            fetchConflictIndex();
             setInterval(updateRadar, 15000);
             setInterval(loadNews, 300000);
             setInterval(loadStrikes, 600000);
             setInterval(loadThreats, 300000);
+            setInterval(fetchConflictIndex, 300000);
         </script>
     </body>
 </html>

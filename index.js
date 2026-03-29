@@ -196,6 +196,110 @@ const COUNTRY_MAP = {
     IRN:  ["Iran", "Tehran", "IRGC", "Khamenei", "Houthi"],
 };
 
+// Shared raw feed cache (used by both /api/threats and /api/conflict-index)
+let rawFeedCache = null;
+let rawFeedCacheTime = 0;
+
+async function fetchRawFeed() {
+    if (rawFeedCache && Date.now() - rawFeedCacheTime < 5 * 60 * 1000) {
+        return rawFeedCache;
+    }
+    const feedResults = await Promise.all(
+        THREAT_FEEDS.map(f =>
+            parser.parseURL(f.url)
+                .then(feed => feed.items.map(item => ({ ...item, _source: f.name })))
+                .catch(() => [])
+        )
+    );
+    rawFeedCache = feedResults.flat();
+    rawFeedCacheTime = Date.now();
+    return rawFeedCache;
+}
+
+// Conflict scoring — weights applied per article
+const SEVERITY_WEIGHTS = [
+    { words: ["ballistic missile", "airstrike", "air strike", "killed", "dead", "destroyed", "bomb", "explosion"], score: 3 },
+    { words: ["missile", "drone attack", "attack", "strike", "rocket", "intercept", "Houthi", "IRGC", "warplane"], score: 2 },
+    { words: ["threat", "tension", "military", "sanction", "warning", "troops", "conflict", "confrontation"], score: 1 },
+    { words: ["diplomacy", "ceasefire", "peace", "talks", "agreement", "withdraw"], score: -1 },
+];
+
+// Geopolitical baseline levels (1=Minimal → 6=Critical)
+const BASELINE_LEVELS = { UAE: 2, BHR: 3, QAT: 2, KWT: 2, SAU: 5, OMN: 1, IRN: 6 };
+
+// Score thresholds: raw article score → level delta (+/-)
+function scoreToDelta(score) {
+    if (score >= 20) return 2;
+    if (score >= 10) return 1;
+    if (score >= 5)  return 0;
+    if (score >= 1)  return 0;
+    if (score <= -3) return -1;
+    return 0;
+}
+
+let conflictIndexCache = null;
+let conflictIndexCacheTime = 0;
+
+app.get("/api/conflict-index", async (req, res) => {
+    if (conflictIndexCache && Date.now() - conflictIndexCacheTime < 5 * 60 * 1000) {
+        return res.json(conflictIndexCache);
+    }
+    try {
+        const items = await fetchRawFeed();
+        const now = Date.now();
+        const WINDOW_MS = 6 * 60 * 60 * 1000; // 6-hour window
+
+        const result = {};
+        for (const [code, countryNames] of Object.entries(COUNTRY_MAP)) {
+            const relevant = items.filter(item => {
+                const text = ((item.title || "") + " " + (item.contentSnippet || "")).toUpperCase();
+                const age = now - new Date(item.isoDate || 0).getTime();
+                return age < WINDOW_MS && countryNames.some(n => text.includes(n.toUpperCase()));
+            });
+
+            let rawScore = 0;
+            const triggeredHeadlines = [];
+            relevant.forEach(item => {
+                const text = ((item.title || "") + " " + (item.contentSnippet || "")).toLowerCase();
+                let itemScore = 0;
+                for (const bucket of SEVERITY_WEIGHTS) {
+                    if (bucket.words.some(w => text.includes(w))) {
+                        itemScore += bucket.score;
+                    }
+                }
+                rawScore += itemScore;
+                if (itemScore > 0 && item.title) triggeredHeadlines.push(item.title);
+            });
+
+            const baseline = BASELINE_LEVELS[code] || 3;
+            const delta = scoreToDelta(rawScore);
+            const level = Math.min(6, Math.max(1, baseline + delta));
+
+            result[code] = {
+                level,
+                baseline,
+                delta,
+                articleCount: relevant.length,
+                rawScore,
+                triggers: triggeredHeadlines.slice(0, 3),
+                updatedAt: new Date().toISOString(),
+            };
+        }
+
+        conflictIndexCache = result;
+        conflictIndexCacheTime = Date.now();
+        res.json(result);
+    } catch (e) {
+        console.error("Conflict index error:", e.message);
+        // Return baseline levels as fallback
+        const fallback = {};
+        for (const [code, lvl] of Object.entries(BASELINE_LEVELS)) {
+            fallback[code] = { level: lvl, baseline: lvl, delta: 0, articleCount: 0, rawScore: 0, triggers: [], updatedAt: new Date().toISOString() };
+        }
+        res.json(fallback);
+    }
+});
+
 let threatCache = null;
 let threatCacheTime = 0;
 
@@ -204,15 +308,7 @@ app.get("/api/threats", async (req, res) => {
         return res.json(threatCache);
     }
     try {
-        const feedResults = await Promise.all(
-            THREAT_FEEDS.map(f =>
-                parser.parseURL(f.url)
-                    .then(feed => feed.items.map(item => ({ ...item, _source: f.name })))
-                    .catch(() => [])
-            )
-        );
-
-        const all = feedResults.flat();
+        const all = await fetchRawFeed();
         const seen = new Set();
 
         const threats = all
