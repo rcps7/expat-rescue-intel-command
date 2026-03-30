@@ -711,6 +711,42 @@
                     flex-shrink: 0;
                 }
 
+                /* Disclaimer — always show enter button */
+                #disclaimer .modal-content {
+                    justify-content: flex-start !important;
+                    padding: 20px 16px 16px !important;
+                    overflow: hidden;
+                    box-sizing: border-box;
+                }
+                #disclaimer h2 {
+                    font-size: 13px !important;
+                    margin-bottom: 10px;
+                    flex-shrink: 0;
+                }
+                #disclaimer p {
+                    font-size: 11px !important;
+                    line-height: 1.5 !important;
+                    max-height: 52vh !important;
+                    overflow-y: auto !important;
+                    -webkit-overflow-scrolling: touch;
+                    border: 1px solid #1f3d1f;
+                    padding: 8px !important;
+                    margin-bottom: 14px !important;
+                    text-align: left !important;
+                    border-radius: 3px;
+                    background: rgba(0,0,0,0.4);
+                    flex-shrink: 1;
+                }
+                #disclaimer button {
+                    flex-shrink: 0;
+                    font-size: 14px !important;
+                    padding: 12px 32px !important;
+                    width: 100%;
+                    font-family: "Courier New", monospace;
+                    letter-spacing: 1px;
+                    touch-action: manipulation;
+                }
+
                 /* Strike modal — full screen on phone */
                 #strike-modal > div {
                     padding: 16px;
