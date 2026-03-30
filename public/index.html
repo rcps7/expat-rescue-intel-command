@@ -2,10 +2,16 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+        />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
         <meta name="theme-color" content="#050505" />
         <title>EXPAT RESCUE INTEL COMMAND</title>
         <link
@@ -72,7 +78,7 @@
                 display: flex;
                 align-items: center;
                 gap: 5px;
-                background: rgba(255,255,255,0.04);
+                background: rgba(255, 255, 255, 0.04);
                 border: 1px solid #1f2f1f;
                 border-radius: 3px;
                 padding: 2px 8px;
@@ -83,28 +89,41 @@
                 white-space: nowrap;
                 transition: background 0.15s;
             }
-            .cfl-btn:hover { background: rgba(255,255,255,0.10); }
+            .cfl-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
             .cfl-dot {
-                width: 8px; height: 8px;
+                width: 8px;
+                height: 8px;
                 border-radius: 50%;
                 flex-shrink: 0;
                 box-shadow: 0 0 4px currentColor;
             }
-            .cfl-name { font-weight: bold; color: #eee; }
-            .cfl-level { font-size: 9px; opacity: 0.8; }
+            .cfl-name {
+                font-weight: bold;
+                color: #eee;
+            }
+            .cfl-level {
+                font-size: 9px;
+                opacity: 0.8;
+            }
 
             /* --- CONFLICT DETAIL MODAL --- */
             #conflict-modal {
                 display: none;
                 position: fixed;
-                top: 0; left: 0;
-                width: 100%; height: 100%;
-                background: rgba(0,0,0,0.82);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.82);
                 z-index: 9000;
                 justify-content: center;
                 align-items: center;
             }
-            #conflict-modal.open { display: flex; }
+            #conflict-modal.open {
+                display: flex;
+            }
             #conflict-modal-box {
                 background: #060e06;
                 border: 1px solid #2a4a2a;
@@ -117,14 +136,20 @@
             }
             #conflict-modal-close {
                 position: absolute;
-                top: 10px; right: 14px;
+                top: 10px;
+                right: 14px;
                 cursor: pointer;
                 color: #8b949e;
                 font-size: 18px;
                 line-height: 1;
             }
-            #conflict-modal-close:hover { color: #fff; }
-            #conflict-modal-flag { font-size: 36px; margin-bottom: 6px; }
+            #conflict-modal-close:hover {
+                color: #fff;
+            }
+            #conflict-modal-flag {
+                font-size: 36px;
+                margin-bottom: 6px;
+            }
             #conflict-modal-title {
                 font-size: 16px;
                 font-weight: bold;
@@ -325,12 +350,18 @@
             }
 
             @keyframes scrollLeft {
-                0%   { transform: translateX(0); }
-                100% { transform: translateX(-100%); }
+                0% {
+                    transform: translateX(0);
+                }
+                100% {
+                    transform: translateX(-100%);
+                }
             }
 
             /* --- GROUND INTEL MARKERS --- */
-            .marker-airport, .marker-hospital, .marker-fuel {
+            .marker-airport,
+            .marker-hospital,
+            .marker-fuel {
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -342,11 +373,31 @@
                 box-shadow: 0 0 6px currentColor;
                 cursor: pointer;
             }
-            .marker-airport-open       { background: rgba(57,255,20,0.18);  border-color: #39ff14; color: #39ff14; }
-            .marker-airport-restricted { background: rgba(255,170,0,0.18);  border-color: #ffaa00; color: #ffaa00; }
-            .marker-airport-closed     { background: rgba(255,42,42,0.18);  border-color: #ff2a2a; color: #ff2a2a; }
-            .marker-hospital           { background: rgba(255,255,255,0.12); border-color: #ffffff; color: #ffffff; }
-            .marker-fuel               { background: rgba(255,200,0,0.15);   border-color: #ffc800; color: #ffc800; }
+            .marker-airport-open {
+                background: rgba(57, 255, 20, 0.18);
+                border-color: #39ff14;
+                color: #39ff14;
+            }
+            .marker-airport-restricted {
+                background: rgba(255, 170, 0, 0.18);
+                border-color: #ffaa00;
+                color: #ffaa00;
+            }
+            .marker-airport-closed {
+                background: rgba(255, 42, 42, 0.18);
+                border-color: #ff2a2a;
+                color: #ff2a2a;
+            }
+            .marker-hospital {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: #ffffff;
+                color: #ffffff;
+            }
+            .marker-fuel {
+                background: rgba(255, 200, 0, 0.15);
+                border-color: #ffc800;
+                color: #ffc800;
+            }
 
             /* ============================================
                MOBILE FLOATING ACTION BUTTONS
@@ -359,26 +410,41 @@
                 height: 42px;
                 border-radius: 50%;
                 border: 1px solid #1f3d1f;
-                background: rgba(10,15,10,0.95);
+                background: rgba(10, 15, 10, 0.95);
                 color: var(--neon-green);
                 font-size: 16px;
                 cursor: pointer;
                 align-items: center;
                 justify-content: center;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
             }
-            #mob-log-btn    { bottom: 12px; left: 12px; }
-            #mob-layers-btn { bottom: 12px; right: 12px; }
-            #mob-war-btn    { bottom: 64px; right: 12px; font-size:12px; width:42px; height:42px; color:#ff2a2a; border-color:#5a0000; background:rgba(30,0,0,0.95); }
+            #mob-log-btn {
+                bottom: 12px;
+                left: 12px;
+            }
+            #mob-layers-btn {
+                bottom: 12px;
+                right: 12px;
+            }
+            #mob-war-btn {
+                bottom: 64px;
+                right: 12px;
+                font-size: 12px;
+                width: 42px;
+                height: 42px;
+                color: #ff2a2a;
+                border-color: #5a0000;
+                background: rgba(30, 0, 0, 0.95);
+            }
 
             /* Mobile panel drawer (shared) */
             .mob-drawer {
                 display: none;
                 position: fixed;
                 z-index: 2000;
-                background: rgba(6,12,6,0.98);
+                background: rgba(6, 12, 6, 0.98);
                 border: var(--border);
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -396,7 +462,9 @@
                 scrollbar-width: none;
                 flex-shrink: 0;
             }
-            #mob-tab-bar::-webkit-scrollbar { display: none; }
+            #mob-tab-bar::-webkit-scrollbar {
+                display: none;
+            }
             .mob-tab {
                 flex-shrink: 0;
                 padding: 8px 14px;
@@ -409,7 +477,10 @@
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
             }
-            .mob-tab.active { color: var(--neon-green); border-bottom: 2px solid var(--neon-green); }
+            .mob-tab.active {
+                color: var(--neon-green);
+                border-bottom: 2px solid var(--neon-green);
+            }
 
             /* Mobile bottom content area */
             #mob-tab-content {
@@ -432,7 +503,9 @@
                 font-family: "Courier New", monospace !important;
                 font-size: 12px !important;
             }
-            .leaflet-popup-tip { background: #060e06 !important; }
+            .leaflet-popup-tip {
+                background: #060e06 !important;
+            }
             .leaflet-popup-close-button {
                 color: #8b949e !important;
                 font-size: 20px !important;
@@ -443,37 +516,73 @@
                TABLET  (600px – 1023px)
                ============================================ */
             @media (max-width: 1023px) {
-                #mission-log  { width: 220px; max-height: 60%; }
-                #layer-controls { width: 155px; }
-                #bottom-panel { height: 150px; }
-                .data-col h3  { font-size: 12px; }
-                .data-col     { font-size: 11px; }
-                #title-overlay { font-size: 16px; }
+                #mission-log {
+                    width: 220px;
+                    max-height: 60%;
+                }
+                #layer-controls {
+                    width: 155px;
+                }
+                #bottom-panel {
+                    height: 150px;
+                }
+                .data-col h3 {
+                    font-size: 12px;
+                }
+                .data-col {
+                    font-size: 11px;
+                }
+                #title-overlay {
+                    font-size: 16px;
+                }
                 #conflict-bar {
                     overflow-x: auto;
                     -webkit-overflow-scrolling: touch;
                     scrollbar-width: none;
                     flex-wrap: nowrap;
                 }
-                #conflict-bar::-webkit-scrollbar { display: none; }
+                #conflict-bar::-webkit-scrollbar {
+                    display: none;
+                }
             }
 
             /* ============================================
                PHONE  (< 600px)
                ============================================ */
             @media (max-width: 599px) {
-                body { overflow: hidden; }
+                body {
+                    overflow: hidden;
+                }
 
                 /* TOP BAR — compact */
-                #top-bar { height: 44px; padding: env(safe-area-inset-top) 0 0; }
-                #clock { font-size: 11px; min-width: auto; padding: 0 8px; border-right: var(--border); }
-                #ticker-wrap { display: none; }
-                .weather-display { font-size: 10px; padding: 0 8px; }
+                #top-bar {
+                    height: 44px;
+                    padding: env(safe-area-inset-top) 0 0;
+                }
+                #clock {
+                    font-size: 11px;
+                    min-width: auto;
+                    padding: 0 8px;
+                    border-right: var(--border);
+                }
+                #ticker-wrap {
+                    display: none;
+                }
+                .weather-display {
+                    font-size: 10px;
+                    padding: 0 8px;
+                }
                 /* War prediction → invisible in top bar, replaced by FAB */
-                #top-bar > div:last-child { display: none; }
+                #top-bar > div:last-child {
+                    display: none;
+                }
 
                 /* Title overlay */
-                #title-overlay { font-size: 11px; top: 8px; letter-spacing: 0.5px; }
+                #title-overlay {
+                    font-size: 11px;
+                    top: 8px;
+                    letter-spacing: 0.5px;
+                }
 
                 /* CONFLICT BAR — horizontal scroll */
                 #conflict-bar {
@@ -485,9 +594,17 @@
                     gap: 5px;
                     padding: 0 8px;
                 }
-                #conflict-bar::-webkit-scrollbar { display: none; }
-                #conflict-bar-label { display: none; }
-                .cfl-btn { padding: 4px 8px; font-size: 10px; min-height: 28px; }
+                #conflict-bar::-webkit-scrollbar {
+                    display: none;
+                }
+                #conflict-bar-label {
+                    display: none;
+                }
+                .cfl-btn {
+                    padding: 4px 8px;
+                    font-size: 10px;
+                    min-height: 28px;
+                }
 
                 /* FLOATING PANELS — hidden on mobile, shown as drawers */
                 .floating-panel {
@@ -495,20 +612,32 @@
                 }
 
                 /* MAP — takes all remaining space */
-                #map-container { flex-grow: 1; min-height: 0; }
+                #map-container {
+                    flex-grow: 1;
+                    min-height: 0;
+                }
 
                 /* BOTTOM PANEL — hidden, replaced by tabs */
-                #bottom-panel { display: none; }
+                #bottom-panel {
+                    display: none;
+                }
 
                 /* SHOW mobile elements */
-                .mob-fab    { display: flex; }
-                #mob-tab-bar    { display: flex; }
-                #mob-tab-content { display: block; }
+                .mob-fab {
+                    display: flex;
+                }
+                #mob-tab-bar {
+                    display: flex;
+                }
+                #mob-tab-content {
+                    display: block;
+                }
 
                 /* Drawers */
                 #mob-log-drawer {
                     display: block;
-                    bottom: 0; left: 0;
+                    bottom: 0;
+                    left: 0;
                     width: 80vw;
                     max-width: 300px;
                     max-height: 60vh;
@@ -518,11 +647,14 @@
                     transition: transform 0.25s ease;
                     padding: 10px;
                 }
-                #mob-log-drawer.open  { transform: translateX(0); }
+                #mob-log-drawer.open {
+                    transform: translateX(0);
+                }
 
                 #mob-layers-drawer {
                     display: block;
-                    bottom: 0; right: 0;
+                    bottom: 0;
+                    right: 0;
                     width: 180px;
                     max-height: 60vh;
                     border-left: var(--border);
@@ -531,7 +663,9 @@
                     transition: transform 0.25s ease;
                     padding: 10px;
                 }
-                #mob-layers-drawer.open { transform: translateX(0); }
+                #mob-layers-drawer.open {
+                    transform: translateX(0);
+                }
 
                 .drawer-title {
                     font-size: 11px;
@@ -569,18 +703,26 @@
                     border-bottom: 1px solid #0a1a0a;
                     -webkit-tap-highlight-color: transparent;
                 }
-                #mob-layers-drawer input[type=checkbox] {
-                    width: 18px; height: 18px;
+                #mob-layers-drawer input[type="checkbox"] {
+                    width: 18px;
+                    height: 18px;
                     accent-color: var(--neon-green);
                     cursor: pointer;
                     flex-shrink: 0;
                 }
 
                 /* Strike modal — full screen on phone */
-                #strike-modal > div { padding: 16px; }
+                #strike-modal > div {
+                    padding: 16px;
+                }
 
                 /* Conflict modal — full screen on phone */
-                #conflict-modal-box { width: 95%; padding: 16px; max-height: 85vh; overflow-y: auto; }
+                #conflict-modal-box {
+                    width: 95%;
+                    padding: 16px;
+                    max-height: 85vh;
+                    overflow-y: auto;
+                }
 
                 /* Leaflet controls — bigger touch targets */
                 .leaflet-control-zoom a {
@@ -597,12 +739,16 @@
                 }
 
                 /* Safe area for iPhone X+ notch/home bar */
-                #mob-tab-bar { padding-bottom: env(safe-area-inset-bottom); }
+                #mob-tab-bar {
+                    padding-bottom: env(safe-area-inset-bottom);
+                }
             }
 
             /* Fix iOS 100vh safari issue */
             @supports (-webkit-touch-callout: none) {
-                #app-container { height: -webkit-fill-available; }
+                #app-container {
+                    height: -webkit-fill-available;
+                }
             }
         </style>
     </head>
@@ -628,7 +774,7 @@
                 <h2 style="color: var(--alert-red)">
                     ⚠️ PRAVASIINTEL CRISIS DASHBOARD
                 </h2>
-                <p style="max-width: 500px">
+                <p style="max-width: 700px">
                     The information provided on Pravasi Intel (pravasiintel.com)
                     is for general informational purposes only. While we strive
                     to ensure that the content is accurate, reliable, and up to
@@ -684,26 +830,28 @@
                     onclick="openWarPrediction()"
                     title="MiroFish Swarm Intelligence — 5 agents, 3 rounds, live GCC data"
                     style="
-                        cursor:pointer;
-                        background:linear-gradient(135deg,#3a0000,#600000);
-                        border-left:2px solid #ff2a2a;
-                        border-right:2px solid #ff2a2a;
-                        padding:0 16px;
-                        height:100%;
-                        display:flex;
-                        align-items:center;
-                        font-size:11px;
-                        font-weight:bold;
-                        color:#ff2a2a;
-                        letter-spacing:1px;
-                        text-shadow:0 0 8px #ff2a2a;
-                        white-space:nowrap;
-                        transition:background 0.2s;
-                        font-family:'Courier New',monospace;
+                        cursor: pointer;
+                        background: linear-gradient(135deg, #3a0000, #600000);
+                        border-left: 2px solid #ff2a2a;
+                        border-right: 2px solid #ff2a2a;
+                        padding: 0 16px;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        font-size: 11px;
+                        font-weight: bold;
+                        color: #ff2a2a;
+                        letter-spacing: 1px;
+                        text-shadow: 0 0 8px #ff2a2a;
+                        white-space: nowrap;
+                        transition: background 0.2s;
+                        font-family: &quot;Courier New&quot;, monospace;
                     "
                     onmouseover="this.style.background='linear-gradient(135deg,#600000,#900000)'"
                     onmouseout="this.style.background='linear-gradient(135deg,#3a0000,#600000)'"
-                >⚠ WAR PREDICTION ENGINE</div>
+                >
+                    ⚠ WAR PREDICTION ENGINE
+                </div>
             </div>
 
             <!-- CONFLICT INDEX BAR -->
@@ -724,27 +872,82 @@
 
                 <div id="layer-controls" class="floating-panel">
                     <h3>LAYERS</h3>
-                    <label><input type="checkbox" checked id="layer-flights" /> ✈️ FLIGHTS</label><br/>
-                    <label><input type="checkbox" checked id="layer-ships" /> 🚢 SHIPS</label><br/>
-                    <label><input type="checkbox" id="layer-weather" /> ⛈️ CLIMATE</label>
-                    <div style="border-top:1px solid #1f3d1f;margin:7px 0 5px;padding-top:5px;font-size:9px;color:#8b949e;letter-spacing:1px;">GROUND INTEL</div>
-                    <label><input type="checkbox" id="layer-airports" /> 🛬 AIRPORTS</label><br/>
-                    <label><input type="checkbox" id="layer-hospitals" /> 🏥 MEDICAL</label><br/>
-                    <label><input type="checkbox" id="layer-fuel" /> ⛽ FUEL</label><br/>
-                    <label><input type="checkbox" id="layer-routes" /> 🛣️ ROUTES</label>
+                    <label
+                        ><input type="checkbox" checked id="layer-flights" /> ✈️
+                        FLIGHTS</label
+                    ><br />
+                    <label
+                        ><input type="checkbox" checked id="layer-ships" /> 🚢
+                        SHIPS</label
+                    ><br />
+                    <label
+                        ><input type="checkbox" id="layer-weather" /> ⛈️
+                        CLIMATE</label
+                    >
+                    <div
+                        style="
+                            border-top: 1px solid #1f3d1f;
+                            margin: 7px 0 5px;
+                            padding-top: 5px;
+                            font-size: 9px;
+                            color: #8b949e;
+                            letter-spacing: 1px;
+                        "
+                    >
+                        GROUND INTEL
+                    </div>
+                    <label
+                        ><input type="checkbox" id="layer-airports" /> 🛬
+                        AIRPORTS</label
+                    ><br />
+                    <label
+                        ><input type="checkbox" id="layer-hospitals" /> 🏥
+                        MEDICAL</label
+                    ><br />
+                    <label
+                        ><input type="checkbox" id="layer-fuel" /> ⛽
+                        FUEL</label
+                    ><br />
+                    <label
+                        ><input type="checkbox" id="layer-routes" /> 🛣️
+                        ROUTES</label
+                    >
                 </div>
 
                 <!-- Mobile FABs (hidden on desktop) -->
-                <div class="mob-fab" id="mob-log-btn" onclick="toggleMobDrawer('log')" title="Mission Log">📋</div>
-                <div class="mob-fab" id="mob-war-btn" onclick="openWarPrediction()" title="War Prediction">⚠</div>
-                <div class="mob-fab" id="mob-layers-btn" onclick="toggleMobDrawer('layers')" title="Map Layers">≡</div>
+                <div
+                    class="mob-fab"
+                    id="mob-log-btn"
+                    onclick="toggleMobDrawer('log')"
+                    title="Mission Log"
+                >
+                    📋
+                </div>
+                <div
+                    class="mob-fab"
+                    id="mob-war-btn"
+                    onclick="openWarPrediction()"
+                    title="War Prediction"
+                >
+                    ⚠
+                </div>
+                <div
+                    class="mob-fab"
+                    id="mob-layers-btn"
+                    onclick="toggleMobDrawer('layers')"
+                    title="Map Layers"
+                >
+                    ≡
+                </div>
             </div>
 
             <!-- Mobile Log Drawer -->
             <div class="mob-drawer" id="mob-log-drawer">
                 <div class="drawer-title">
                     <span>MISSION LOG</span>
-                    <span class="drawer-close" onclick="toggleMobDrawer('log')">✕</span>
+                    <span class="drawer-close" onclick="toggleMobDrawer('log')"
+                        >✕</span
+                    >
                 </div>
                 <div id="mob-log-entries"></div>
             </div>
@@ -753,24 +956,96 @@
             <div class="mob-drawer" id="mob-layers-drawer">
                 <div class="drawer-title">
                     <span>LAYERS</span>
-                    <span class="drawer-close" onclick="toggleMobDrawer('layers')">✕</span>
+                    <span
+                        class="drawer-close"
+                        onclick="toggleMobDrawer('layers')"
+                        >✕</span
+                    >
                 </div>
-                <label><input type="checkbox" checked id="m-layer-flights" onchange="syncLayer(this,'layer-flights')"/> ✈️ Flights</label>
-                <label><input type="checkbox" checked id="m-layer-ships" onchange="syncLayer(this,'layer-ships')"/> 🚢 Ships</label>
-                <label><input type="checkbox" id="m-layer-weather" onchange="syncLayer(this,'layer-weather')"/> ⛈️ Climate</label>
-                <div style="font-size:10px;color:#555;padding:6px 2px 2px;letter-spacing:1px;border-top:1px solid #0a1a0a;margin-top:4px;">GROUND INTEL</div>
-                <label><input type="checkbox" id="m-layer-airports" onchange="syncLayer(this,'layer-airports')"/> 🛬 Airports</label>
-                <label><input type="checkbox" id="m-layer-hospitals" onchange="syncLayer(this,'layer-hospitals')"/> 🏥 Medical</label>
-                <label><input type="checkbox" id="m-layer-fuel" onchange="syncLayer(this,'layer-fuel')"/> ⛽ Fuel</label>
-                <label><input type="checkbox" id="m-layer-routes" onchange="syncLayer(this,'layer-routes')"/> 🛣️ Routes</label>
+                <label
+                    ><input
+                        type="checkbox"
+                        checked
+                        id="m-layer-flights"
+                        onchange="syncLayer(this,'layer-flights')"
+                    />
+                    ✈️ Flights</label
+                >
+                <label
+                    ><input
+                        type="checkbox"
+                        checked
+                        id="m-layer-ships"
+                        onchange="syncLayer(this,'layer-ships')"
+                    />
+                    🚢 Ships</label
+                >
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-weather"
+                        onchange="syncLayer(this,'layer-weather')"
+                    />
+                    ⛈️ Climate</label
+                >
+                <div
+                    style="
+                        font-size: 10px;
+                        color: #555;
+                        padding: 6px 2px 2px;
+                        letter-spacing: 1px;
+                        border-top: 1px solid #0a1a0a;
+                        margin-top: 4px;
+                    "
+                >
+                    GROUND INTEL
+                </div>
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-airports"
+                        onchange="syncLayer(this,'layer-airports')"
+                    />
+                    🛬 Airports</label
+                >
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-hospitals"
+                        onchange="syncLayer(this,'layer-hospitals')"
+                    />
+                    🏥 Medical</label
+                >
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-fuel"
+                        onchange="syncLayer(this,'layer-fuel')"
+                    />
+                    ⛽ Fuel</label
+                >
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-routes"
+                        onchange="syncLayer(this,'layer-routes')"
+                    />
+                    🛣️ Routes</label
+                >
             </div>
 
             <!-- Mobile Tab Bar -->
             <div id="mob-tab-bar">
-                <div class="mob-tab active" onclick="showMobTab('iran')">🇮🇷 IRAN</div>
-                <div class="mob-tab" onclick="showMobTab('finance')">💰 FINANCE</div>
+                <div class="mob-tab active" onclick="showMobTab('iran')">
+                    🇮🇷 IRAN
+                </div>
+                <div class="mob-tab" onclick="showMobTab('finance')">
+                    💰 FINANCE
+                </div>
                 <div class="mob-tab" onclick="showMobTab('tech')">💻 CYBER</div>
-                <div class="mob-tab" onclick="showMobTab('alerts')">⚠️ STRIKES</div>
+                <div class="mob-tab" onclick="showMobTab('alerts')">
+                    ⚠️ STRIKES
+                </div>
             </div>
             <div id="mob-tab-content"></div>
 
@@ -807,11 +1082,15 @@
         <!-- GCC Conflict Index Modal -->
         <div id="conflict-modal">
             <div id="conflict-modal-box">
-                <span id="conflict-modal-close" onclick="closeConflictModal()">✕</span>
+                <span id="conflict-modal-close" onclick="closeConflictModal()"
+                    >✕</span
+                >
                 <div id="conflict-modal-flag"></div>
                 <div id="conflict-modal-title"></div>
                 <div id="conflict-modal-badge"></div>
-                <div id="conflict-modal-meter"><div id="conflict-modal-fill"></div></div>
+                <div id="conflict-modal-meter">
+                    <div id="conflict-modal-fill"></div>
+                </div>
                 <div id="conflict-modal-reason"></div>
                 <div id="conflict-modal-indicators"></div>
             </div>
@@ -879,14 +1158,14 @@
             ).addTo(map);
 
             const layers = {
-                flights:   L.layerGroup().addTo(map),
-                ships:     L.layerGroup().addTo(map),
-                sats:      L.layerGroup().addTo(map),
-                airports:  L.layerGroup(),
+                flights: L.layerGroup().addTo(map),
+                ships: L.layerGroup().addTo(map),
+                sats: L.layerGroup().addTo(map),
+                airports: L.layerGroup(),
                 hospitals: L.layerGroup(),
-                fuel:      L.layerGroup(),
-                routes:    L.layerGroup(),
-                weather:   L.tileLayer(
+                fuel: L.layerGroup(),
+                routes: L.layerGroup(),
+                weather: L.tileLayer(
                     "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=f40cc357f6be024566a0c703c7320ea6",
                 ),
             };
@@ -900,21 +1179,53 @@
 
             // --- 2. TACTICAL LOGGING ---
             const countryColors = {
-                UAE: "#58a6ff", BHR: "#39ff14", QAT: "#a855f7",
-                KWT: "#f59e0b", SAU: "#22d3ee", OMN: "#fb923c",
-                IRN: "#ff2a2a", GCC: "#8b949e"
+                UAE: "#58a6ff",
+                BHR: "#39ff14",
+                QAT: "#a855f7",
+                KWT: "#f59e0b",
+                SAU: "#22d3ee",
+                OMN: "#fb923c",
+                IRN: "#ff2a2a",
+                GCC: "#8b949e",
             };
 
-            function addLog(msg, link = null, country = null, timestamp = null) {
+            function addLog(
+                msg,
+                link = null,
+                country = null,
+                timestamp = null,
+            ) {
                 const time = timestamp
-                    ? new Date(timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" })
-                    : new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" });
+                    ? new Date(timestamp).toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                          timeZone: "Asia/Riyadh",
+                      })
+                    : new Date().toLocaleTimeString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                          timeZone: "Asia/Riyadh",
+                      });
                 const dateStr = timestamp
-                    ? new Date(timestamp).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Riyadh" })
-                    : new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Riyadh" });
-                const color = country ? (countryColors[country] || "#8b949e") : "#8b949e";
-                const badge = country ? `<span style="background:${color}22;color:${color};border:1px solid ${color};padding:0 4px;border-radius:2px;font-size:9px;margin-right:5px;">${country}</span>` : "";
-                const html = `<span style="color:#555;font-size:9px;">${dateStr} ${time} AST</span><br>${badge}<span style="${link ? 'color:var(--alert-red);' : ''}">${msg}</span>`;
+                    ? new Date(timestamp).toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          timeZone: "Asia/Riyadh",
+                      })
+                    : new Date().toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          timeZone: "Asia/Riyadh",
+                      });
+                const color = country
+                    ? countryColors[country] || "#8b949e"
+                    : "#8b949e";
+                const badge = country
+                    ? `<span style="background:${color}22;color:${color};border:1px solid ${color};padding:0 4px;border-radius:2px;font-size:9px;margin-right:5px;">${country}</span>`
+                    : "";
+                const html = `<span style="color:#555;font-size:9px;">${dateStr} ${time} AST</span><br>${badge}<span style="${link ? "color:var(--alert-red);" : ""}">${msg}</span>`;
 
                 // Desktop log
                 const log = document.getElementById("log-entries");
@@ -932,7 +1243,8 @@
                 mobEntry.style.cursor = link ? "pointer" : "default";
                 if (link) mobEntry.onclick = () => window.open(link, "_blank");
                 mobLog.prepend(mobEntry);
-                while (mobLog.children.length > 40) mobLog.removeChild(mobLog.lastChild);
+                while (mobLog.children.length > 40)
+                    mobLog.removeChild(mobLog.lastChild);
             }
 
             async function loadThreats() {
@@ -943,11 +1255,18 @@
                         addLog("Threat feed — no matching events detected");
                         return;
                     }
-                    threats.slice(0, 12).reverse().forEach(t => {
-                        const label = t.source ? `[${t.source}] ${t.title}` : t.title;
-                        addLog(label, t.url, t.country, t.timestamp);
-                    });
-                    addLog(`Threat scan complete — ${threats.length} events matched`);
+                    threats
+                        .slice(0, 12)
+                        .reverse()
+                        .forEach((t) => {
+                            const label = t.source
+                                ? `[${t.source}] ${t.title}`
+                                : t.title;
+                            addLog(label, t.url, t.country, t.timestamp);
+                        });
+                    addLog(
+                        `Threat scan complete — ${threats.length} events matched`,
+                    );
                 } catch (e) {
                     addLog("THREAT FEED: Datalink offline");
                 }
@@ -1232,179 +1551,789 @@
 
             const GCC_AIRPORTS = [
                 // UAE
-                { iata:"DXB", name:"Dubai International Airport",       lat:25.2532, lng:55.3657, country:"UAE", status:"OPEN",       intl:true,  note:"World's busiest intl airport. 24/7 ops." },
-                { iata:"AUH", name:"Abu Dhabi International Airport",   lat:24.4330, lng:54.6511, country:"UAE", status:"OPEN",       intl:true,  note:"Home of Etihad Airways. US pre-clearance facility." },
-                { iata:"SHJ", name:"Sharjah International Airport",     lat:25.3285, lng:55.5172, country:"UAE", status:"OPEN",       intl:true,  note:"Major low-cost hub." },
-                { iata:"DWC", name:"Al Maktoum International (DWC)",    lat:24.8963, lng:55.1614, country:"UAE", status:"OPEN",       intl:true,  note:"Cargo focused. Passenger ops limited." },
-                { iata:"RKT", name:"Ras Al Khaimah Airport",            lat:25.6135, lng:55.9388, country:"UAE", status:"OPEN",       intl:false, note:"Regional. Low traffic." },
-                { iata:"AAN", name:"Al Ain International Airport",      lat:24.2617, lng:55.6092, country:"UAE", status:"OPEN",       intl:true,  note:"Regional hub, Abu Dhabi emirate." },
-                { iata:"FJR", name:"Fujairah International Airport",    lat:25.1122, lng:56.3240, country:"UAE", status:"OPEN",       intl:false, note:"Small regional airport." },
+                {
+                    iata: "DXB",
+                    name: "Dubai International Airport",
+                    lat: 25.2532,
+                    lng: 55.3657,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: true,
+                    note: "World's busiest intl airport. 24/7 ops.",
+                },
+                {
+                    iata: "AUH",
+                    name: "Abu Dhabi International Airport",
+                    lat: 24.433,
+                    lng: 54.6511,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Home of Etihad Airways. US pre-clearance facility.",
+                },
+                {
+                    iata: "SHJ",
+                    name: "Sharjah International Airport",
+                    lat: 25.3285,
+                    lng: 55.5172,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Major low-cost hub.",
+                },
+                {
+                    iata: "DWC",
+                    name: "Al Maktoum International (DWC)",
+                    lat: 24.8963,
+                    lng: 55.1614,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Cargo focused. Passenger ops limited.",
+                },
+                {
+                    iata: "RKT",
+                    name: "Ras Al Khaimah Airport",
+                    lat: 25.6135,
+                    lng: 55.9388,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Regional. Low traffic.",
+                },
+                {
+                    iata: "AAN",
+                    name: "Al Ain International Airport",
+                    lat: 24.2617,
+                    lng: 55.6092,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Regional hub, Abu Dhabi emirate.",
+                },
+                {
+                    iata: "FJR",
+                    name: "Fujairah International Airport",
+                    lat: 25.1122,
+                    lng: 56.324,
+                    country: "UAE",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Small regional airport.",
+                },
                 // Bahrain
-                { iata:"BAH", name:"Bahrain International Airport",     lat:26.2708, lng:50.6336, country:"BHR", status:"OPEN",       intl:true,  note:"Main intl hub. US 5th Fleet base adjacent. 24/7 ops." },
+                {
+                    iata: "BAH",
+                    name: "Bahrain International Airport",
+                    lat: 26.2708,
+                    lng: 50.6336,
+                    country: "BHR",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Main intl hub. US 5th Fleet base adjacent. 24/7 ops.",
+                },
                 // Qatar
-                { iata:"DOH", name:"Hamad International Airport",       lat:25.2731, lng:51.6081, country:"QAT", status:"OPEN",       intl:true,  note:"State-of-the-art hub. Qatar Airways HQ. 24/7 ops." },
+                {
+                    iata: "DOH",
+                    name: "Hamad International Airport",
+                    lat: 25.2731,
+                    lng: 51.6081,
+                    country: "QAT",
+                    status: "OPEN",
+                    intl: true,
+                    note: "State-of-the-art hub. Qatar Airways HQ. 24/7 ops.",
+                },
                 // Kuwait
-                { iata:"KWI", name:"Kuwait International Airport",      lat:29.2266, lng:47.9689, country:"KWT", status:"OPEN",       intl:true,  note:"Single terminal. Expansion ongoing." },
+                {
+                    iata: "KWI",
+                    name: "Kuwait International Airport",
+                    lat: 29.2266,
+                    lng: 47.9689,
+                    country: "KWT",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Single terminal. Expansion ongoing.",
+                },
                 // Saudi Arabia
-                { iata:"RUH", name:"King Khalid Intl Airport (Riyadh)", lat:24.9576, lng:46.6988, country:"SAU", status:"OPEN",       intl:true,  note:"Primary hub for Saudi Arabia. 24/7 ops." },
-                { iata:"JED", name:"King Abdulaziz Intl Airport (Jeddah)",lat:21.6796,lng:39.1565,country:"SAU", status:"OPEN",       intl:true,  note:"Hajj terminal. Major western hub." },
-                { iata:"DMM", name:"King Fahd Intl Airport (Dammam)",   lat:26.4712, lng:49.7979, country:"SAU", status:"OPEN",       intl:true,  note:"Largest airport by area globally. Eastern Province hub." },
-                { iata:"MED", name:"Prince Mohammad bin Abdulaziz (Medina)",lat:24.5534,lng:39.7051,country:"SAU",status:"OPEN",      intl:true,  note:"Hajj/pilgrim traffic. Limited intl routes." },
-                { iata:"TUU", name:"Tabuk Regional Airport",            lat:28.3654, lng:36.6189, country:"SAU", status:"OPEN",       intl:false, note:"Near Jordan border. Military presence." },
-                { iata:"AHB", name:"Abha International Airport",        lat:18.2404, lng:42.6566, country:"SAU", status:"RESTRICTED", intl:true,  note:"⚠️ Houthi missile/drone attack history. Ops restricted. Verify before travel." },
-                { iata:"GIZ", name:"Jazan Regional Airport",            lat:16.9011, lng:42.5858, country:"SAU", status:"RESTRICTED", intl:false, note:"⚠️ Near Yemen border conflict zone. Limited ops." },
-                { iata:"NJR", name:"Najran Airport",                    lat:17.6114, lng:44.4192, country:"SAU", status:"RESTRICTED", intl:false, note:"⚠️ Active conflict proximity (Yemen). Verify NOTAMs." },
-                { iata:"YNB", name:"Yanbu Airport",                     lat:24.1442, lng:38.0634, country:"SAU", status:"OPEN",       intl:false, note:"Industrial city airport. Petrochemical corridor." },
-                { iata:"HAS", name:"Ha'il Regional Airport",            lat:27.4379, lng:41.6863, country:"SAU", status:"OPEN",       intl:false, note:"Central north Saudi. Limited routes." },
+                {
+                    iata: "RUH",
+                    name: "King Khalid Intl Airport (Riyadh)",
+                    lat: 24.9576,
+                    lng: 46.6988,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Primary hub for Saudi Arabia. 24/7 ops.",
+                },
+                {
+                    iata: "JED",
+                    name: "King Abdulaziz Intl Airport (Jeddah)",
+                    lat: 21.6796,
+                    lng: 39.1565,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Hajj terminal. Major western hub.",
+                },
+                {
+                    iata: "DMM",
+                    name: "King Fahd Intl Airport (Dammam)",
+                    lat: 26.4712,
+                    lng: 49.7979,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Largest airport by area globally. Eastern Province hub.",
+                },
+                {
+                    iata: "MED",
+                    name: "Prince Mohammad bin Abdulaziz (Medina)",
+                    lat: 24.5534,
+                    lng: 39.7051,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Hajj/pilgrim traffic. Limited intl routes.",
+                },
+                {
+                    iata: "TUU",
+                    name: "Tabuk Regional Airport",
+                    lat: 28.3654,
+                    lng: 36.6189,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Near Jordan border. Military presence.",
+                },
+                {
+                    iata: "AHB",
+                    name: "Abha International Airport",
+                    lat: 18.2404,
+                    lng: 42.6566,
+                    country: "SAU",
+                    status: "RESTRICTED",
+                    intl: true,
+                    note: "⚠️ Houthi missile/drone attack history. Ops restricted. Verify before travel.",
+                },
+                {
+                    iata: "GIZ",
+                    name: "Jazan Regional Airport",
+                    lat: 16.9011,
+                    lng: 42.5858,
+                    country: "SAU",
+                    status: "RESTRICTED",
+                    intl: false,
+                    note: "⚠️ Near Yemen border conflict zone. Limited ops.",
+                },
+                {
+                    iata: "NJR",
+                    name: "Najran Airport",
+                    lat: 17.6114,
+                    lng: 44.4192,
+                    country: "SAU",
+                    status: "RESTRICTED",
+                    intl: false,
+                    note: "⚠️ Active conflict proximity (Yemen). Verify NOTAMs.",
+                },
+                {
+                    iata: "YNB",
+                    name: "Yanbu Airport",
+                    lat: 24.1442,
+                    lng: 38.0634,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Industrial city airport. Petrochemical corridor.",
+                },
+                {
+                    iata: "HAS",
+                    name: "Ha'il Regional Airport",
+                    lat: 27.4379,
+                    lng: 41.6863,
+                    country: "SAU",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Central north Saudi. Limited routes.",
+                },
                 // Oman
-                { iata:"MCT", name:"Muscat International Airport",      lat:23.5932, lng:58.2844, country:"OMN", status:"OPEN",       intl:true,  note:"Main hub. Oman Air HQ. Expanded 2018." },
-                { iata:"SLL", name:"Salalah Airport",                   lat:17.0371, lng:54.0913, country:"OMN", status:"OPEN",       intl:true,  note:"Southern Oman. Seasonal tourism hub." },
-                { iata:"OHS", name:"Sohar Airport",                     lat:24.3860, lng:56.6254, country:"OMN", status:"OPEN",       intl:false, note:"Industrial port city airport." },
-                { iata:"DQM", name:"Duqm Airport",                      lat:19.5020, lng:57.6340, country:"OMN", status:"OPEN",       intl:false, note:"Strategic deep-water port area. Growing." },
-                { iata:"KHS", name:"Khasab Airport",                    lat:26.1710, lng:56.2406, country:"OMN", status:"OPEN",       intl:false, note:"Musandam exclave. Near Strait of Hormuz." },
+                {
+                    iata: "MCT",
+                    name: "Muscat International Airport",
+                    lat: 23.5932,
+                    lng: 58.2844,
+                    country: "OMN",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Main hub. Oman Air HQ. Expanded 2018.",
+                },
+                {
+                    iata: "SLL",
+                    name: "Salalah Airport",
+                    lat: 17.0371,
+                    lng: 54.0913,
+                    country: "OMN",
+                    status: "OPEN",
+                    intl: true,
+                    note: "Southern Oman. Seasonal tourism hub.",
+                },
+                {
+                    iata: "OHS",
+                    name: "Sohar Airport",
+                    lat: 24.386,
+                    lng: 56.6254,
+                    country: "OMN",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Industrial port city airport.",
+                },
+                {
+                    iata: "DQM",
+                    name: "Duqm Airport",
+                    lat: 19.502,
+                    lng: 57.634,
+                    country: "OMN",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Strategic deep-water port area. Growing.",
+                },
+                {
+                    iata: "KHS",
+                    name: "Khasab Airport",
+                    lat: 26.171,
+                    lng: 56.2406,
+                    country: "OMN",
+                    status: "OPEN",
+                    intl: false,
+                    note: "Musandam exclave. Near Strait of Hormuz.",
+                },
             ];
 
             const GCC_HOSPITALS = [
                 // UAE
-                { name:"Rashid Hospital",                     lat:25.2381, lng:55.3235, country:"UAE", type:"Trauma/Emergency", note:"Major trauma center. 24/7 A&E. 760 beds." },
-                { name:"Sheikh Khalifa Medical City (AUH)",   lat:24.4219, lng:54.4349, country:"UAE", type:"General Hospital",  note:"Largest hospital in Abu Dhabi. 750 beds." },
-                { name:"American Hospital Dubai",             lat:25.2186, lng:55.2870, country:"UAE", type:"Private Hospital",  note:"JCI accredited. 24/7 emergency. English-speaking." },
-                { name:"Tawam Hospital (Al Ain)",             lat:24.2176, lng:55.7371, country:"UAE", type:"General Hospital",  note:"Al Ain. Johns Hopkins affiliated. Oncology center." },
-                { name:"Thumbay University Hospital (AJM)",   lat:25.3973, lng:55.4789, country:"UAE", type:"University Hospital",note:"Ajman. Medical city complex." },
+                {
+                    name: "Rashid Hospital",
+                    lat: 25.2381,
+                    lng: 55.3235,
+                    country: "UAE",
+                    type: "Trauma/Emergency",
+                    note: "Major trauma center. 24/7 A&E. 760 beds.",
+                },
+                {
+                    name: "Sheikh Khalifa Medical City (AUH)",
+                    lat: 24.4219,
+                    lng: 54.4349,
+                    country: "UAE",
+                    type: "General Hospital",
+                    note: "Largest hospital in Abu Dhabi. 750 beds.",
+                },
+                {
+                    name: "American Hospital Dubai",
+                    lat: 25.2186,
+                    lng: 55.287,
+                    country: "UAE",
+                    type: "Private Hospital",
+                    note: "JCI accredited. 24/7 emergency. English-speaking.",
+                },
+                {
+                    name: "Tawam Hospital (Al Ain)",
+                    lat: 24.2176,
+                    lng: 55.7371,
+                    country: "UAE",
+                    type: "General Hospital",
+                    note: "Al Ain. Johns Hopkins affiliated. Oncology center.",
+                },
+                {
+                    name: "Thumbay University Hospital (AJM)",
+                    lat: 25.3973,
+                    lng: 55.4789,
+                    country: "UAE",
+                    type: "University Hospital",
+                    note: "Ajman. Medical city complex.",
+                },
                 // Bahrain
-                { name:"Salmaniya Medical Complex",           lat:26.2154, lng:50.5876, country:"BHR", type:"Government Hospital",note:"Main public hospital. Trauma and emergency." },
-                { name:"King Hamad University Hospital",      lat:26.1762, lng:50.5082, country:"BHR", type:"University Hospital",note:"Modern facility. 500 beds. South Riffa." },
-                { name:"BDF Royal Medical Services Hospital", lat:26.2012, lng:50.5428, country:"BHR", type:"Military Hospital",  note:"Bahrain Defence Force. Military + civilian." },
+                {
+                    name: "Salmaniya Medical Complex",
+                    lat: 26.2154,
+                    lng: 50.5876,
+                    country: "BHR",
+                    type: "Government Hospital",
+                    note: "Main public hospital. Trauma and emergency.",
+                },
+                {
+                    name: "King Hamad University Hospital",
+                    lat: 26.1762,
+                    lng: 50.5082,
+                    country: "BHR",
+                    type: "University Hospital",
+                    note: "Modern facility. 500 beds. South Riffa.",
+                },
+                {
+                    name: "BDF Royal Medical Services Hospital",
+                    lat: 26.2012,
+                    lng: 50.5428,
+                    country: "BHR",
+                    type: "Military Hospital",
+                    note: "Bahrain Defence Force. Military + civilian.",
+                },
                 // Qatar
-                { name:"Hamad General Hospital",              lat:25.2894, lng:51.5072, country:"QAT", type:"Trauma/Emergency",  note:"Qatar's main public hospital. Level 1 trauma center." },
-                { name:"Sidra Medicine",                      lat:25.3217, lng:51.4382, country:"QAT", type:"Specialist Hospital",note:"Weill Cornell affiliated. Women and children specialty." },
-                { name:"Al Khor Hospital",                    lat:25.6836, lng:51.5006, country:"QAT", type:"General Hospital",  note:"Northern Qatar. Emergency services." },
+                {
+                    name: "Hamad General Hospital",
+                    lat: 25.2894,
+                    lng: 51.5072,
+                    country: "QAT",
+                    type: "Trauma/Emergency",
+                    note: "Qatar's main public hospital. Level 1 trauma center.",
+                },
+                {
+                    name: "Sidra Medicine",
+                    lat: 25.3217,
+                    lng: 51.4382,
+                    country: "QAT",
+                    type: "Specialist Hospital",
+                    note: "Weill Cornell affiliated. Women and children specialty.",
+                },
+                {
+                    name: "Al Khor Hospital",
+                    lat: 25.6836,
+                    lng: 51.5006,
+                    country: "QAT",
+                    type: "General Hospital",
+                    note: "Northern Qatar. Emergency services.",
+                },
                 // Kuwait
-                { name:"Mubarak Al-Kabeer Hospital",          lat:29.3198, lng:48.0021, country:"KWT", type:"General Hospital",  note:"Largest government hospital in Kuwait. 700 beds." },
-                { name:"Al Amiri Hospital",                   lat:29.3718, lng:47.9828, country:"KWT", type:"General Hospital",  note:"Central Kuwait City. Emergency services." },
-                { name:"Al Sabah Hospital",                   lat:29.3268, lng:47.9527, country:"KWT", type:"General Hospital",  note:"Major public hospital. Trauma care." },
+                {
+                    name: "Mubarak Al-Kabeer Hospital",
+                    lat: 29.3198,
+                    lng: 48.0021,
+                    country: "KWT",
+                    type: "General Hospital",
+                    note: "Largest government hospital in Kuwait. 700 beds.",
+                },
+                {
+                    name: "Al Amiri Hospital",
+                    lat: 29.3718,
+                    lng: 47.9828,
+                    country: "KWT",
+                    type: "General Hospital",
+                    note: "Central Kuwait City. Emergency services.",
+                },
+                {
+                    name: "Al Sabah Hospital",
+                    lat: 29.3268,
+                    lng: 47.9527,
+                    country: "KWT",
+                    type: "General Hospital",
+                    note: "Major public hospital. Trauma care.",
+                },
                 // Saudi Arabia
-                { name:"King Fahd Medical City (Riyadh)",     lat:24.6875, lng:46.7223, country:"SAU", type:"Medical City",     note:"Largest medical complex in Saudi. 1,200 beds." },
-                { name:"King Faisal Specialist Hospital (RUH)",lat:24.6974,lng:46.7097, country:"SAU", type:"Specialist Hospital",note:"Referral center. Organ transplant. JCI accredited." },
-                { name:"King Abdulaziz Medical City (RUH)",   lat:24.8046, lng:46.6257, country:"SAU", type:"Military Hospital", note:"National Guard hospital. Emergency trauma." },
-                { name:"King Abdulaziz University Hospital (JED)",lat:21.4858,lng:39.2331,country:"SAU",type:"University Hospital",note:"Jeddah. Teaching hospital. 24/7 emergency." },
-                { name:"Security Forces Hospital (RUH)",      lat:24.7535, lng:46.6929, country:"SAU", type:"General Hospital",  note:"Riyadh. Civilian emergency access." },
+                {
+                    name: "King Fahd Medical City (Riyadh)",
+                    lat: 24.6875,
+                    lng: 46.7223,
+                    country: "SAU",
+                    type: "Medical City",
+                    note: "Largest medical complex in Saudi. 1,200 beds.",
+                },
+                {
+                    name: "King Faisal Specialist Hospital (RUH)",
+                    lat: 24.6974,
+                    lng: 46.7097,
+                    country: "SAU",
+                    type: "Specialist Hospital",
+                    note: "Referral center. Organ transplant. JCI accredited.",
+                },
+                {
+                    name: "King Abdulaziz Medical City (RUH)",
+                    lat: 24.8046,
+                    lng: 46.6257,
+                    country: "SAU",
+                    type: "Military Hospital",
+                    note: "National Guard hospital. Emergency trauma.",
+                },
+                {
+                    name: "King Abdulaziz University Hospital (JED)",
+                    lat: 21.4858,
+                    lng: 39.2331,
+                    country: "SAU",
+                    type: "University Hospital",
+                    note: "Jeddah. Teaching hospital. 24/7 emergency.",
+                },
+                {
+                    name: "Security Forces Hospital (RUH)",
+                    lat: 24.7535,
+                    lng: 46.6929,
+                    country: "SAU",
+                    type: "General Hospital",
+                    note: "Riyadh. Civilian emergency access.",
+                },
                 // Oman
-                { name:"Royal Hospital Muscat",               lat:23.5974, lng:58.2286, country:"OMN", type:"Government Hospital",note:"Oman's main referral hospital. 600 beds." },
-                { name:"Sultan Qaboos University Hospital",   lat:23.5872, lng:58.1675, country:"OMN", type:"University Hospital",note:"Muscat. Teaching hospital. Emergency and trauma." },
-                { name:"Khoula Hospital",                     lat:23.5888, lng:58.3871, country:"OMN", type:"Trauma Hospital",   note:"Muscat. Major trauma center. Orthopedics specialty." },
-                { name:"Salalah Hospital",                    lat:17.0154, lng:54.0850, country:"OMN", type:"General Hospital",  note:"Southern Oman main hospital." },
+                {
+                    name: "Royal Hospital Muscat",
+                    lat: 23.5974,
+                    lng: 58.2286,
+                    country: "OMN",
+                    type: "Government Hospital",
+                    note: "Oman's main referral hospital. 600 beds.",
+                },
+                {
+                    name: "Sultan Qaboos University Hospital",
+                    lat: 23.5872,
+                    lng: 58.1675,
+                    country: "OMN",
+                    type: "University Hospital",
+                    note: "Muscat. Teaching hospital. Emergency and trauma.",
+                },
+                {
+                    name: "Khoula Hospital",
+                    lat: 23.5888,
+                    lng: 58.3871,
+                    country: "OMN",
+                    type: "Trauma Hospital",
+                    note: "Muscat. Major trauma center. Orthopedics specialty.",
+                },
+                {
+                    name: "Salalah Hospital",
+                    lat: 17.0154,
+                    lng: 54.085,
+                    country: "OMN",
+                    type: "General Hospital",
+                    note: "Southern Oman main hospital.",
+                },
             ];
 
             const GCC_FUEL = [
                 // UAE corridor
-                { name:"ADNOC — E11 Abu Dhabi (Musaffah)",  lat:24.3688, lng:54.4776, country:"UAE", brand:"ADNOC", note:"Major depot on Abu Dhabi–Dubai corridor. 24/7." },
-                { name:"ADNOC — E11 Dubai (Ghusais)",       lat:25.2661, lng:55.3745, country:"UAE", brand:"ADNOC", note:"Sheikh Zayed Road arterial. High capacity." },
-                { name:"EPPCO — Sharjah Industrial Area",   lat:25.3195, lng:55.4118, country:"UAE", brand:"EPPCO", note:"Sharjah industrial zone. Diesel available." },
-                { name:"ADNOC — E66 Hatta Road",            lat:24.9965, lng:55.8712, country:"UAE", brand:"ADNOC", note:"En route to Oman via Hatta border." },
-                { name:"ADNOC — Al Ain (Bawadi Mall area)", lat:24.2239, lng:55.7564, country:"UAE", brand:"ADNOC", note:"Al Ain city hub. Oman border access point." },
+                {
+                    name: "ADNOC — E11 Abu Dhabi (Musaffah)",
+                    lat: 24.3688,
+                    lng: 54.4776,
+                    country: "UAE",
+                    brand: "ADNOC",
+                    note: "Major depot on Abu Dhabi–Dubai corridor. 24/7.",
+                },
+                {
+                    name: "ADNOC — E11 Dubai (Ghusais)",
+                    lat: 25.2661,
+                    lng: 55.3745,
+                    country: "UAE",
+                    brand: "ADNOC",
+                    note: "Sheikh Zayed Road arterial. High capacity.",
+                },
+                {
+                    name: "EPPCO — Sharjah Industrial Area",
+                    lat: 25.3195,
+                    lng: 55.4118,
+                    country: "UAE",
+                    brand: "EPPCO",
+                    note: "Sharjah industrial zone. Diesel available.",
+                },
+                {
+                    name: "ADNOC — E66 Hatta Road",
+                    lat: 24.9965,
+                    lng: 55.8712,
+                    country: "UAE",
+                    brand: "ADNOC",
+                    note: "En route to Oman via Hatta border.",
+                },
+                {
+                    name: "ADNOC — Al Ain (Bawadi Mall area)",
+                    lat: 24.2239,
+                    lng: 55.7564,
+                    country: "UAE",
+                    brand: "ADNOC",
+                    note: "Al Ain city hub. Oman border access point.",
+                },
                 // Bahrain
-                { name:"BAPCO — Riffa North Station",       lat:26.1406, lng:50.5480, country:"BHR", brand:"BAPCO", note:"Main arterial south of Manama. King Fahd Causeway access." },
-                { name:"BAPCO — Manama Central",            lat:26.2154, lng:50.5761, country:"BHR", brand:"BAPCO", note:"Central Bahrain. 24/7." },
+                {
+                    name: "BAPCO — Riffa North Station",
+                    lat: 26.1406,
+                    lng: 50.548,
+                    country: "BHR",
+                    brand: "BAPCO",
+                    note: "Main arterial south of Manama. King Fahd Causeway access.",
+                },
+                {
+                    name: "BAPCO — Manama Central",
+                    lat: 26.2154,
+                    lng: 50.5761,
+                    country: "BHR",
+                    brand: "BAPCO",
+                    note: "Central Bahrain. 24/7.",
+                },
                 // Qatar
-                { name:"Woqod — Salwa Road (Mesaieed Rd)", lat:25.2110, lng:51.5209, country:"QAT", brand:"Woqod",  note:"South Doha. En route to Saudi border crossing." },
-                { name:"Woqod — Dukhan Highway",            lat:25.3200, lng:51.1620, country:"QAT", brand:"Woqod",  note:"West Qatar artery. Dukhan energy zone." },
-                { name:"Woqod — Al Khor North",             lat:25.6788, lng:51.5067, country:"QAT", brand:"Woqod",  note:"Northern Qatar towards causeway." },
+                {
+                    name: "Woqod — Salwa Road (Mesaieed Rd)",
+                    lat: 25.211,
+                    lng: 51.5209,
+                    country: "QAT",
+                    brand: "Woqod",
+                    note: "South Doha. En route to Saudi border crossing.",
+                },
+                {
+                    name: "Woqod — Dukhan Highway",
+                    lat: 25.32,
+                    lng: 51.162,
+                    country: "QAT",
+                    brand: "Woqod",
+                    note: "West Qatar artery. Dukhan energy zone.",
+                },
+                {
+                    name: "Woqod — Al Khor North",
+                    lat: 25.6788,
+                    lng: 51.5067,
+                    country: "QAT",
+                    brand: "Woqod",
+                    note: "Northern Qatar towards causeway.",
+                },
                 // Kuwait
-                { name:"KNPC — 6th Ring Road",              lat:29.2748, lng:47.9372, country:"KWT", brand:"KNPC",  note:"Southwest Kuwait. Saudi border corridor." },
-                { name:"KNPC — Jahra Road",                 lat:29.3416, lng:47.6741, country:"KWT", brand:"KNPC",  note:"Western arterial. Iraq/Saudi direction." },
+                {
+                    name: "KNPC — 6th Ring Road",
+                    lat: 29.2748,
+                    lng: 47.9372,
+                    country: "KWT",
+                    brand: "KNPC",
+                    note: "Southwest Kuwait. Saudi border corridor.",
+                },
+                {
+                    name: "KNPC — Jahra Road",
+                    lat: 29.3416,
+                    lng: 47.6741,
+                    country: "KWT",
+                    brand: "KNPC",
+                    note: "Western arterial. Iraq/Saudi direction.",
+                },
                 // Saudi Arabia
-                { name:"Saudi Aramco — King Fahd Causeway",lat:26.2303, lng:50.1629, country:"SAU", brand:"Aramco", note:"Entry point from Bahrain. High traffic." },
-                { name:"Saudi Aramco — Dammam Hwy 40",     lat:26.3927, lng:49.9777, country:"SAU", brand:"Aramco", note:"Trans-Arabian Highway. Dammam direction." },
-                { name:"Saudi Aramco — Riyadh Ring Road",   lat:24.6945, lng:46.8110, country:"SAU", brand:"Aramco", note:"East Riyadh logistics corridor." },
-                { name:"NAFT — Taif/Mecca Highway",         lat:21.3891, lng:40.4897, country:"SAU", brand:"NAFT",  note:"Mecca ring. Hajj corridor fuel point." },
+                {
+                    name: "Saudi Aramco — King Fahd Causeway",
+                    lat: 26.2303,
+                    lng: 50.1629,
+                    country: "SAU",
+                    brand: "Aramco",
+                    note: "Entry point from Bahrain. High traffic.",
+                },
+                {
+                    name: "Saudi Aramco — Dammam Hwy 40",
+                    lat: 26.3927,
+                    lng: 49.9777,
+                    country: "SAU",
+                    brand: "Aramco",
+                    note: "Trans-Arabian Highway. Dammam direction.",
+                },
+                {
+                    name: "Saudi Aramco — Riyadh Ring Road",
+                    lat: 24.6945,
+                    lng: 46.811,
+                    country: "SAU",
+                    brand: "Aramco",
+                    note: "East Riyadh logistics corridor.",
+                },
+                {
+                    name: "NAFT — Taif/Mecca Highway",
+                    lat: 21.3891,
+                    lng: 40.4897,
+                    country: "SAU",
+                    brand: "NAFT",
+                    note: "Mecca ring. Hajj corridor fuel point.",
+                },
                 // Oman
-                { name:"OmanOil — Muscat Expressway",       lat:23.6102, lng:58.4203, country:"OMN", brand:"OmanOil", note:"Main Muscat arterial. Airport vicinity." },
-                { name:"OmanOil — Sur Highway (Nizwa Rd)",  lat:23.3217, lng:57.5314, country:"OMN", brand:"OmanOil", note:"Muscat–Nizwa corridor. Interior access." },
-                { name:"OmanOil — Salalah City",            lat:17.0198, lng:54.1235, country:"OMN", brand:"OmanOil", note:"Southern Oman hub. Dhofar region." },
+                {
+                    name: "OmanOil — Muscat Expressway",
+                    lat: 23.6102,
+                    lng: 58.4203,
+                    country: "OMN",
+                    brand: "OmanOil",
+                    note: "Main Muscat arterial. Airport vicinity.",
+                },
+                {
+                    name: "OmanOil — Sur Highway (Nizwa Rd)",
+                    lat: 23.3217,
+                    lng: 57.5314,
+                    country: "OMN",
+                    brand: "OmanOil",
+                    note: "Muscat–Nizwa corridor. Interior access.",
+                },
+                {
+                    name: "OmanOil — Salalah City",
+                    lat: 17.0198,
+                    lng: 54.1235,
+                    country: "OMN",
+                    brand: "OmanOil",
+                    note: "Southern Oman hub. Dhofar region.",
+                },
             ];
 
             const GCC_ROUTES = [
                 {
-                    id:"R1", name:"UAE Coastal Corridor (Dubai → Abu Dhabi)",
-                    color:"#39ff14", status:"CLEAR",
-                    note:"E11 Sheikh Zayed Rd. Primary evacuation artery UAE. 130km. Multiple fuel stops.",
-                    coords:[[25.2048,55.2708],[25.0657,55.1338],[24.8607,54.9890],[24.6877,54.7619],[24.4539,54.5835],[24.3088,54.3861]]
+                    id: "R1",
+                    name: "UAE Coastal Corridor (Dubai → Abu Dhabi)",
+                    color: "#39ff14",
+                    status: "CLEAR",
+                    note: "E11 Sheikh Zayed Rd. Primary evacuation artery UAE. 130km. Multiple fuel stops.",
+                    coords: [
+                        [25.2048, 55.2708],
+                        [25.0657, 55.1338],
+                        [24.8607, 54.989],
+                        [24.6877, 54.7619],
+                        [24.4539, 54.5835],
+                        [24.3088, 54.3861],
+                    ],
                 },
                 {
-                    id:"R2", name:"UAE → Oman via Hatta",
-                    color:"#39ff14", status:"CLEAR",
-                    note:"E44/E66 through Hatta mountain pass. UAE–Oman border at Hatta. Scenic but verify checkpoint status.",
-                    coords:[[25.2048,55.2708],[25.2000,55.5200],[25.1200,55.7800],[24.9965,55.8712],[24.8013,55.9790]]
+                    id: "R2",
+                    name: "UAE → Oman via Hatta",
+                    color: "#39ff14",
+                    status: "CLEAR",
+                    note: "E44/E66 through Hatta mountain pass. UAE–Oman border at Hatta. Scenic but verify checkpoint status.",
+                    coords: [
+                        [25.2048, 55.2708],
+                        [25.2, 55.52],
+                        [25.12, 55.78],
+                        [24.9965, 55.8712],
+                        [24.8013, 55.979],
+                    ],
                 },
                 {
-                    id:"R3", name:"Al Ain → Oman (Buraimi Border)",
-                    color:"#39ff14", status:"CLEAR",
-                    note:"Direct UAE–Oman land crossing at Buraimi/Al Ain. 160km to Muscat. Well-serviced.",
-                    coords:[[24.2239,55.7564],[24.1855,55.7861],[24.1580,55.8240],[24.1430,55.8560]]
+                    id: "R3",
+                    name: "Al Ain → Oman (Buraimi Border)",
+                    color: "#39ff14",
+                    status: "CLEAR",
+                    note: "Direct UAE–Oman land crossing at Buraimi/Al Ain. 160km to Muscat. Well-serviced.",
+                    coords: [
+                        [24.2239, 55.7564],
+                        [24.1855, 55.7861],
+                        [24.158, 55.824],
+                        [24.143, 55.856],
+                    ],
                 },
                 {
-                    id:"R4", name:"King Fahd Causeway (Bahrain ↔ Saudi Arabia)",
-                    color:"#ffaa00", status:"CAUTION",
-                    note:"Only road link between Bahrain and mainland. 25km causeway. High traffic. Verify border ops before travel.",
-                    coords:[[26.2154,50.5761],[26.2303,50.3850],[26.2350,50.1629],[26.2390,50.0900]]
+                    id: "R4",
+                    name: "King Fahd Causeway (Bahrain ↔ Saudi Arabia)",
+                    color: "#ffaa00",
+                    status: "CAUTION",
+                    note: "Only road link between Bahrain and mainland. 25km causeway. High traffic. Verify border ops before travel.",
+                    coords: [
+                        [26.2154, 50.5761],
+                        [26.2303, 50.385],
+                        [26.235, 50.1629],
+                        [26.239, 50.09],
+                    ],
                 },
                 {
-                    id:"R5", name:"Kuwait → Saudi Arabia (King Fahad Highway)",
-                    color:"#ffaa00", status:"CAUTION",
-                    note:"Highway 80 / Route 5. Kuwait City to Saudi border at Khafji. ~100km. Monitor border ops.",
-                    coords:[[29.3718,47.9828],[29.2748,47.9372],[29.0900,47.8600],[28.8500,47.7500],[28.6176,47.6600]]
+                    id: "R5",
+                    name: "Kuwait → Saudi Arabia (King Fahad Highway)",
+                    color: "#ffaa00",
+                    status: "CAUTION",
+                    note: "Highway 80 / Route 5. Kuwait City to Saudi border at Khafji. ~100km. Monitor border ops.",
+                    coords: [
+                        [29.3718, 47.9828],
+                        [29.2748, 47.9372],
+                        [29.09, 47.86],
+                        [28.85, 47.75],
+                        [28.6176, 47.66],
+                    ],
                 },
                 {
-                    id:"R6", name:"Saudi Arabia — Trans-Arabian Highway (Dammam → Riyadh)",
-                    color:"#39ff14", status:"CLEAR",
-                    note:"Highway 40. 400km. Well-maintained 6-lane expressway. Fuel depots every 80km.",
-                    coords:[[26.3927,49.9777],[26.1000,49.5000],[25.5000,48.5000],[25.0000,47.8000],[24.6945,46.8110]]
+                    id: "R6",
+                    name: "Saudi Arabia — Trans-Arabian Highway (Dammam → Riyadh)",
+                    color: "#39ff14",
+                    status: "CLEAR",
+                    note: "Highway 40. 400km. Well-maintained 6-lane expressway. Fuel depots every 80km.",
+                    coords: [
+                        [26.3927, 49.9777],
+                        [26.1, 49.5],
+                        [25.5, 48.5],
+                        [25.0, 47.8],
+                        [24.6945, 46.811],
+                    ],
                 },
                 {
-                    id:"R7", name:"Oman Coastal Expressway (Muscat → Dubai)",
-                    color:"#39ff14", status:"CLEAR",
-                    note:"Route 1 / E44. ~400km. Coastal highway. Fujairah border crossing. Scenic and well serviced.",
-                    coords:[[23.5932,58.2844],[23.7500,58.5900],[24.0500,56.9800],[24.2800,56.7200],[25.1122,56.3240],[25.2048,55.2708]]
+                    id: "R7",
+                    name: "Oman Coastal Expressway (Muscat → Dubai)",
+                    color: "#39ff14",
+                    status: "CLEAR",
+                    note: "Route 1 / E44. ~400km. Coastal highway. Fujairah border crossing. Scenic and well serviced.",
+                    coords: [
+                        [23.5932, 58.2844],
+                        [23.75, 58.59],
+                        [24.05, 56.98],
+                        [24.28, 56.72],
+                        [25.1122, 56.324],
+                        [25.2048, 55.2708],
+                    ],
                 },
                 {
-                    id:"R8", name:"Saudi Arabia — Jeddah → Riyadh (Highway 40 West)",
-                    color:"#39ff14", status:"CLEAR",
-                    note:"Highway 40 westbound. Jeddah to Riyadh. 950km. Dual carriageway. Fuel and rest stops.",
-                    coords:[[21.6796,39.1565],[22.0500,40.2000],[23.0000,42.0000],[24.0000,44.0000],[24.6945,46.8110]]
+                    id: "R8",
+                    name: "Saudi Arabia — Jeddah → Riyadh (Highway 40 West)",
+                    color: "#39ff14",
+                    status: "CLEAR",
+                    note: "Highway 40 westbound. Jeddah to Riyadh. 950km. Dual carriageway. Fuel and rest stops.",
+                    coords: [
+                        [21.6796, 39.1565],
+                        [22.05, 40.2],
+                        [23.0, 42.0],
+                        [24.0, 44.0],
+                        [24.6945, 46.811],
+                    ],
                 },
                 {
-                    id:"R9", name:"Qatar — Doha → Abu Samra (Saudi Border)",
-                    color:"#ffaa00", status:"CAUTION",
-                    note:"Salwa Road / Highway 1. ~100km south to Saudi border at Abu Samra. Monitor diplomatic status.",
-                    coords:[[25.2731,51.6081],[25.2110,51.5209],[25.0500,51.3500],[24.8500,51.1000],[24.7330,50.9100]]
+                    id: "R9",
+                    name: "Qatar — Doha → Abu Samra (Saudi Border)",
+                    color: "#ffaa00",
+                    status: "CAUTION",
+                    note: "Salwa Road / Highway 1. ~100km south to Saudi border at Abu Samra. Monitor diplomatic status.",
+                    coords: [
+                        [25.2731, 51.6081],
+                        [25.211, 51.5209],
+                        [25.05, 51.35],
+                        [24.85, 51.1],
+                        [24.733, 50.91],
+                    ],
                 },
                 {
-                    id:"R10", name:"Oman Interior Route (Muscat → Salalah)",
-                    color:"#ffaa00", status:"CAUTION",
-                    note:"Highway 31 via Nizwa and Thumrait. ~1,000km. Remote desert. Ensure fuel before Nizwa. Summer extreme heat.",
-                    coords:[[23.5932,58.2844],[22.9333,57.5311],[20.8000,56.5000],[18.5000,54.8000],[17.0371,54.0913]]
+                    id: "R10",
+                    name: "Oman Interior Route (Muscat → Salalah)",
+                    color: "#ffaa00",
+                    status: "CAUTION",
+                    note: "Highway 31 via Nizwa and Thumrait. ~1,000km. Remote desert. Ensure fuel before Nizwa. Summer extreme heat.",
+                    coords: [
+                        [23.5932, 58.2844],
+                        [22.9333, 57.5311],
+                        [20.8, 56.5],
+                        [18.5, 54.8],
+                        [17.0371, 54.0913],
+                    ],
                 },
             ];
 
             function makePopup(html) {
-                return L.popup({ className: "tactical-popup", maxWidth: 300 }).setContent(
-                    `<div style="font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#c9d1d9;">${html}</div>`
+                return L.popup({
+                    className: "tactical-popup",
+                    maxWidth: 300,
+                }).setContent(
+                    `<div style="font-family:'Courier New',monospace;font-size:11px;line-height:1.7;color:#c9d1d9;">${html}</div>`,
                 );
             }
 
             function buildAirportLayers() {
                 layers.airports.clearLayers();
-                GCC_AIRPORTS.forEach(ap => {
-                    const cls = ap.status === "OPEN" ? "marker-airport-open"
-                              : ap.status === "RESTRICTED" ? "marker-airport-restricted"
+                GCC_AIRPORTS.forEach((ap) => {
+                    const cls =
+                        ap.status === "OPEN"
+                            ? "marker-airport-open"
+                            : ap.status === "RESTRICTED"
+                              ? "marker-airport-restricted"
                               : "marker-airport-closed";
-                    const statusColor = ap.status === "OPEN" ? "#39ff14" : ap.status === "RESTRICTED" ? "#ffaa00" : "#ff2a2a";
+                    const statusColor =
+                        ap.status === "OPEN"
+                            ? "#39ff14"
+                            : ap.status === "RESTRICTED"
+                              ? "#ffaa00"
+                              : "#ff2a2a";
                     const icon = L.divIcon({
                         className: `marker-airport ${cls}`,
                         iconSize: [26, 26],
                         iconAnchor: [13, 13],
-                        html: "🛬"
+                        html: "🛬",
                     });
                     const popup = makePopup(`
                         <div style="font-weight:bold;font-size:13px;color:#58a6ff;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
@@ -1416,18 +2345,20 @@
                         <div><span style="color:#8b949e;">COORDS:</span> ${ap.lat.toFixed(4)}, ${ap.lng.toFixed(4)}</div>
                         <div style="margin-top:6px;color:#aaa;">${ap.note}</div>
                     `);
-                    L.marker([ap.lat, ap.lng], { icon }).bindPopup(popup).addTo(layers.airports);
+                    L.marker([ap.lat, ap.lng], { icon })
+                        .bindPopup(popup)
+                        .addTo(layers.airports);
                 });
             }
 
             function buildHospitalLayers() {
                 layers.hospitals.clearLayers();
-                GCC_HOSPITALS.forEach(h => {
+                GCC_HOSPITALS.forEach((h) => {
                     const icon = L.divIcon({
                         className: "marker-hospital",
                         iconSize: [26, 26],
                         iconAnchor: [13, 13],
-                        html: "🏥"
+                        html: "🏥",
                     });
                     const popup = makePopup(`
                         <div style="font-weight:bold;font-size:13px;color:#ffffff;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
@@ -1438,18 +2369,20 @@
                         <div><span style="color:#8b949e;">COORDS:</span> ${h.lat.toFixed(4)}, ${h.lng.toFixed(4)}</div>
                         <div style="margin-top:6px;color:#aaa;">${h.note}</div>
                     `);
-                    L.marker([h.lat, h.lng], { icon }).bindPopup(popup).addTo(layers.hospitals);
+                    L.marker([h.lat, h.lng], { icon })
+                        .bindPopup(popup)
+                        .addTo(layers.hospitals);
                 });
             }
 
             function buildFuelLayers() {
                 layers.fuel.clearLayers();
-                GCC_FUEL.forEach(f => {
+                GCC_FUEL.forEach((f) => {
                     const icon = L.divIcon({
                         className: "marker-fuel",
                         iconSize: [26, 26],
                         iconAnchor: [13, 13],
-                        html: "⛽"
+                        html: "⛽",
                     });
                     const popup = makePopup(`
                         <div style="font-weight:bold;font-size:13px;color:#ffc800;border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
@@ -1460,20 +2393,23 @@
                         <div><span style="color:#8b949e;">COORDS:</span> ${f.lat.toFixed(4)}, ${f.lng.toFixed(4)}</div>
                         <div style="margin-top:6px;color:#aaa;">${f.note}</div>
                     `);
-                    L.marker([f.lat, f.lng], { icon }).bindPopup(popup).addTo(layers.fuel);
+                    L.marker([f.lat, f.lng], { icon })
+                        .bindPopup(popup)
+                        .addTo(layers.fuel);
                 });
             }
 
             function buildRouteLayers() {
                 layers.routes.clearLayers();
-                GCC_ROUTES.forEach(r => {
+                GCC_ROUTES.forEach((r) => {
                     const line = L.polyline(r.coords, {
                         color: r.color,
                         weight: 3,
                         opacity: 0.75,
                         dashArray: r.status === "CAUTION" ? "8 5" : null,
                     });
-                    const statusColor = r.status === "CLEAR" ? "#39ff14" : "#ffaa00";
+                    const statusColor =
+                        r.status === "CLEAR" ? "#39ff14" : "#ffaa00";
                     const popup = makePopup(`
                         <div style="font-weight:bold;font-size:13px;color:${r.color};border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
                             🛣️ ${r.name}
@@ -1486,10 +2422,13 @@
                     const [slat, slng] = r.coords[0];
                     L.marker([slat, slng], {
                         icon: L.divIcon({
-                            className: "", iconSize: [0,0],
-                            html: `<div style="background:${r.color}22;border:1px solid ${r.color};color:${r.color};font-family:monospace;font-size:9px;padding:1px 4px;white-space:nowrap;border-radius:2px;">${r.id}</div>`
-                        })
-                    }).bindPopup(popup).addTo(layers.routes);
+                            className: "",
+                            iconSize: [0, 0],
+                            html: `<div style="background:${r.color}22;border:1px solid ${r.color};color:${r.color};font-family:monospace;font-size:9px;padding:1px 4px;white-space:nowrap;border-radius:2px;">${r.id}</div>`,
+                        }),
+                    })
+                        .bindPopup(popup)
+                        .addTo(layers.routes);
                 });
             }
 
@@ -1500,11 +2439,13 @@
             buildRouteLayers();
 
             // Wire layer toggles
-            ["airports","hospitals","fuel","routes"].forEach(key => {
-                document.getElementById(`layer-${key}`).addEventListener("change", e => {
-                    if (e.target.checked) map.addLayer(layers[key]);
-                    else map.removeLayer(layers[key]);
-                });
+            ["airports", "hospitals", "fuel", "routes"].forEach((key) => {
+                document
+                    .getElementById(`layer-${key}`)
+                    .addEventListener("change", (e) => {
+                        if (e.target.checked) map.addLayer(layers[key]);
+                        else map.removeLayer(layers[key]);
+                    });
             });
 
             // --- 5. INITIALIZE ---
@@ -1525,63 +2466,147 @@
 
             // --- GCC CONFLICT INDEX ---
             const CONFLICT_LEVELS = {
-                1: { name: "MINIMAL",  color: "#39ff14", bg: "rgba(57,255,20,0.12)" },
-                2: { name: "ELEVATED", color: "#aaff00", bg: "rgba(170,255,0,0.12)" },
-                3: { name: "GUARDED",  color: "#ffaa00", bg: "rgba(255,170,0,0.12)" },
-                4: { name: "HIGH",     color: "#ff6600", bg: "rgba(255,102,0,0.12)" },
-                5: { name: "SEVERE",   color: "#ff2a2a", bg: "rgba(255,42,42,0.12)" },
-                6: { name: "CRITICAL", color: "#ff0066", bg: "rgba(255,0,102,0.15)" },
+                1: {
+                    name: "MINIMAL",
+                    color: "#39ff14",
+                    bg: "rgba(57,255,20,0.12)",
+                },
+                2: {
+                    name: "ELEVATED",
+                    color: "#aaff00",
+                    bg: "rgba(170,255,0,0.12)",
+                },
+                3: {
+                    name: "GUARDED",
+                    color: "#ffaa00",
+                    bg: "rgba(255,170,0,0.12)",
+                },
+                4: {
+                    name: "HIGH",
+                    color: "#ff6600",
+                    bg: "rgba(255,102,0,0.12)",
+                },
+                5: {
+                    name: "SEVERE",
+                    color: "#ff2a2a",
+                    bg: "rgba(255,42,42,0.12)",
+                },
+                6: {
+                    name: "CRITICAL",
+                    color: "#ff0066",
+                    bg: "rgba(255,0,102,0.15)",
+                },
             };
 
             const GCC_CONFLICT_DATA = [
                 {
-                    code: "UAE", flag: "🇦🇪", name: "United Arab Emirates",
+                    code: "UAE",
+                    flag: "🇦🇪",
+                    name: "United Arab Emirates",
                     level: 2,
-                    summary: "Elevated regional tension; no active domestic conflict.",
+                    summary:
+                        "Elevated regional tension; no active domestic conflict.",
                     reason: "The UAE maintains a stable domestic environment with strong air-defense integration. However, it remains exposed to regional spillover from Yemen, Iranian proxy activity, and Gulf maritime incidents. THAAD and Patriot batteries are operational. UAE withdrew ground forces from Yemen in 2019 but retains proxy support roles. Iranian threats to UAE energy infrastructure remain credible.",
-                    indicators: ["Houthi missile range", "Iranian proxy activity", "Strait of Hormuz transit risk", "Critical infra targeting"],
+                    indicators: [
+                        "Houthi missile range",
+                        "Iranian proxy activity",
+                        "Strait of Hormuz transit risk",
+                        "Critical infra targeting",
+                    ],
                 },
                 {
-                    code: "BHR", flag: "🇧🇭", name: "Bahrain",
+                    code: "BHR",
+                    flag: "🇧🇭",
+                    name: "Bahrain",
                     level: 3,
-                    summary: "Guarded — hosts US 5th Fleet; elevated Iranian subversion risk.",
+                    summary:
+                        "Guarded — hosts US 5th Fleet; elevated Iranian subversion risk.",
                     reason: "Bahrain is geographically the most exposed GCC state to Iranian influence. Home to the US Naval Forces Central Command (NAVCENT/5th Fleet), it is a strategic target in any US-Iran escalation. Persistent Shia political grievances (majority population, minority Sunni government) are exploited by Iranian state media and the IRGC's extraterritorial operations. Houthi maritime drone activity in Gulf waters poses direct risk to naval traffic near Bahrain.",
-                    indicators: ["IRGC subversion ops", "5th Fleet target priority", "Shia domestic unrest risk", "Houthi maritime drones", "Iran proximity (300km)"],
+                    indicators: [
+                        "IRGC subversion ops",
+                        "5th Fleet target priority",
+                        "Shia domestic unrest risk",
+                        "Houthi maritime drones",
+                        "Iran proximity (300km)",
+                    ],
                 },
                 {
-                    code: "QAT", flag: "🇶🇦", name: "Qatar",
+                    code: "QAT",
+                    flag: "🇶🇦",
+                    name: "Qatar",
                     level: 2,
-                    summary: "Elevated — mediator role reduces direct risk; US CENTCOM present.",
+                    summary:
+                        "Elevated — mediator role reduces direct risk; US CENTCOM present.",
                     reason: "Qatar hosts Al Udeid Air Base, the largest US military presence in the Middle East, which simultaneously makes it a deterrence asset and a high-value adversary target. Qatar maintains unique diplomatic channels with Iran, Hamas, and the Taliban which buffer direct confrontation. The 2017–2021 GCC blockade formally ended but bilateral tensions persist with Saudi Arabia and UAE. LNG export infrastructure is a strategic vulnerability.",
-                    indicators: ["Al Udeid base (US CENTCOM)", "LNG export vulnerability", "Hamas mediation exposure", "Post-blockade tensions"],
+                    indicators: [
+                        "Al Udeid base (US CENTCOM)",
+                        "LNG export vulnerability",
+                        "Hamas mediation exposure",
+                        "Post-blockade tensions",
+                    ],
                 },
                 {
-                    code: "KWT", flag: "🇰🇼", name: "Kuwait",
+                    code: "KWT",
+                    flag: "🇰🇼",
+                    name: "Kuwait",
                     level: 2,
-                    summary: "Elevated — historic Iraqi border instability; low current threat.",
+                    summary:
+                        "Elevated — historic Iraqi border instability; low current threat.",
                     reason: "Kuwait has largely stable domestic security and active US basing agreements (Camp Arifjan, Ali Al Salem). Iranian ballistic missile envelopes cover all of Kuwait. IRGC-linked cells have been disrupted historically. Kuwait shares mediator instincts similar to Qatar, maintaining open diplomatic lines. Primary risk is escalation contagion from a US-Iran confrontation or Houthi maritime actions in northern Gulf.",
-                    indicators: ["US Camp Arifjan presence", "Iranian missile range coverage", "Northern Gulf Houthi risk", "IRGC cell history"],
+                    indicators: [
+                        "US Camp Arifjan presence",
+                        "Iranian missile range coverage",
+                        "Northern Gulf Houthi risk",
+                        "IRGC cell history",
+                    ],
                 },
                 {
-                    code: "SAU", flag: "🇸🇦", name: "Saudi Arabia",
+                    code: "SAU",
+                    flag: "🇸🇦",
+                    name: "Saudi Arabia",
                     level: 5,
-                    summary: "SEVERE — active Houthi strikes on territory; oil infra targeted.",
+                    summary:
+                        "SEVERE — active Houthi strikes on territory; oil infra targeted.",
                     reason: "Saudi Arabia is in active armed conflict via its intervention in Yemen and faces direct Houthi retaliation. Ballistic missiles, cruise missiles, and one-way attack UAVs have struck Riyadh, Jeddah, Abha airport, and critical oil infrastructure including the 2019 Aramco Abqaiq attack (largest ever on global oil supply). Saudi air defenses intercept dozens of threats monthly. Peace negotiations with Houthis are ongoing but fragile. Iran provides weapons and targeting support to Houthi forces.",
-                    indicators: ["Active Houthi ballistic strikes", "Aramco infra targeting", "Saudi-led Yemen Coalition", "Iran weapons/tech supply", "Peace talks — fragile"],
+                    indicators: [
+                        "Active Houthi ballistic strikes",
+                        "Aramco infra targeting",
+                        "Saudi-led Yemen Coalition",
+                        "Iran weapons/tech supply",
+                        "Peace talks — fragile",
+                    ],
                 },
                 {
-                    code: "OMN", flag: "🇴🇲", name: "Oman",
+                    code: "OMN",
+                    flag: "🇴🇲",
+                    name: "Oman",
                     level: 1,
-                    summary: "Minimal — active neutral mediator; lowest threat exposure in GCC.",
+                    summary:
+                        "Minimal — active neutral mediator; lowest threat exposure in GCC.",
                     reason: "Oman has pursued consistent neutrality across decades of regional conflict, maintaining open diplomatic channels with Iran, Israel, the US, and Houthi leadership simultaneously. It has served as the back-channel for US-Iran nuclear negotiations and Yemen ceasefire talks. No active conflict affects Omani territory. A small Dhofar border region historically had separatist activity (ended 1975). Maritime traffic through the Strait of Hormuz presents latent vulnerability.",
-                    indicators: ["Neutral mediator role", "Iran back-channel host", "Strait of Hormuz proximity", "No active domestic threat"],
+                    indicators: [
+                        "Neutral mediator role",
+                        "Iran back-channel host",
+                        "Strait of Hormuz proximity",
+                        "No active domestic threat",
+                    ],
                 },
                 {
-                    code: "IRN", flag: "🇮🇷", name: "Iran",
+                    code: "IRN",
+                    flag: "🇮🇷",
+                    name: "Iran",
                     level: 6,
-                    summary: "CRITICAL — proxy wars active; nuclear standoff; direct-strike capability.",
+                    summary:
+                        "CRITICAL — proxy wars active; nuclear standoff; direct-strike capability.",
                     reason: "Iran is the primary destabilizing actor in the Gulf region. It operates an extensive proxy network (Houthis in Yemen, Hezbollah in Lebanon/Syria, PMF in Iraq, PIJ in Gaza) and directly commands IRGC Quds Force operations across the region. Iran's ballistic missile arsenal is the largest in the Middle East with range covering all GCC capitals and US bases. The nuclear program, suspended JCPOA, and Israeli shadow war (assassinations, sabotage) maintain a continuous escalation risk. In 2024–2025, Iran launched direct missile and drone barrages at Israel — a historic escalation crossing regional red lines.",
-                    indicators: ["IRGC Quds Force ops", "Proxy network active (6 countries)", "Ballistic missiles 2,000km+ range", "Nuclear enrichment ongoing", "Direct Israel strike history", "US/Israeli strike threat"],
+                    indicators: [
+                        "IRGC Quds Force ops",
+                        "Proxy network active (6 countries)",
+                        "Ballistic missiles 2,000km+ range",
+                        "Nuclear enrichment ongoing",
+                        "Direct Israel strike history",
+                        "US/Israeli strike threat",
+                    ],
                 },
             ];
 
@@ -1589,19 +2614,22 @@
             let liveConflictIndex = {};
 
             function openConflictModal(code) {
-                const d = GCC_CONFLICT_DATA.find(c => c.code === code);
+                const d = GCC_CONFLICT_DATA.find((c) => c.code === code);
                 if (!d) return;
                 const live = liveConflictIndex[code];
                 const currentLevel = live ? live.level : d.level;
                 const lvl = CONFLICT_LEVELS[currentLevel];
 
-                document.getElementById("conflict-modal-flag").textContent = d.flag;
-                document.getElementById("conflict-modal-title").textContent = `${d.code} — ${d.name}`;
+                document.getElementById("conflict-modal-flag").textContent =
+                    d.flag;
+                document.getElementById("conflict-modal-title").textContent =
+                    `${d.code} — ${d.name}`;
 
                 const badge = document.getElementById("conflict-modal-badge");
-                const deltaTag = live && live.delta !== 0
-                    ? ` <span style="font-size:10px;opacity:0.8;">(${live.delta > 0 ? "▲" : "▼"}${Math.abs(live.delta)} from baseline)</span>`
-                    : "";
+                const deltaTag =
+                    live && live.delta !== 0
+                        ? ` <span style="font-size:10px;opacity:0.8;">(${live.delta > 0 ? "▲" : "▼"}${Math.abs(live.delta)} from baseline)</span>`
+                        : "";
                 badge.innerHTML = `LEVEL ${currentLevel}: ${lvl.name}${deltaTag}`;
                 badge.style.cssText = `background:${lvl.bg};color:${lvl.color};border:1px solid ${lvl.color};display:inline-block;padding:2px 10px;border-radius:3px;font-size:11px;font-weight:bold;margin-bottom:14px;`;
 
@@ -1612,27 +2640,37 @@
                 let reasonHtml = `<strong style="color:#ccc;">ASSESSMENT:</strong><br>${d.reason}`;
                 if (live && live.triggers && live.triggers.length) {
                     reasonHtml += `<br><br><strong style="color:#ffaa00;">LIVE TRIGGERS (last 6h):</strong><br>`;
-                    reasonHtml += live.triggers.map(t =>
-                        `<span style="color:#aaa;font-size:11px;">• ${t}</span>`
-                    ).join("<br>");
+                    reasonHtml += live.triggers
+                        .map(
+                            (t) =>
+                                `<span style="color:#aaa;font-size:11px;">• ${t}</span>`,
+                        )
+                        .join("<br>");
                 }
                 if (live) {
-                    reasonHtml += `<br><br><span style="color:#555;font-size:10px;">Index score: ${live.rawScore} | Articles matched: ${live.articleCount} | Updated: ${new Date(live.updatedAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",timeZone:"Asia/Riyadh"})} AST</span>`;
+                    reasonHtml += `<br><br><span style="color:#555;font-size:10px;">Index score: ${live.rawScore} | Articles matched: ${live.articleCount} | Updated: ${new Date(live.updatedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Riyadh" })} AST</span>`;
                 }
-                document.getElementById("conflict-modal-reason").innerHTML = reasonHtml;
+                document.getElementById("conflict-modal-reason").innerHTML =
+                    reasonHtml;
 
                 document.getElementById("conflict-modal-indicators").innerHTML =
-                    d.indicators.map(i => `<span class="cfl-indicator">${i}</span>`).join("");
+                    d.indicators
+                        .map((i) => `<span class="cfl-indicator">${i}</span>`)
+                        .join("");
 
                 document.getElementById("conflict-modal").classList.add("open");
             }
 
             function closeConflictModal() {
-                document.getElementById("conflict-modal").classList.remove("open");
+                document
+                    .getElementById("conflict-modal")
+                    .classList.remove("open");
             }
-            document.getElementById("conflict-modal").addEventListener("click", function(e) {
-                if (e.target === this) closeConflictModal();
-            });
+            document
+                .getElementById("conflict-modal")
+                .addEventListener("click", function (e) {
+                    if (e.target === this) closeConflictModal();
+                });
 
             function updateConflictButton(code, level, prevLevel) {
                 const lvl = CONFLICT_LEVELS[level];
@@ -1640,16 +2678,27 @@
                 if (!btn) return;
                 btn.querySelector(".cfl-dot").style.background = lvl.color;
                 btn.querySelector(".cfl-dot").style.color = lvl.color;
-                btn.querySelector(".cfl-level").textContent = `L${level}·${lvl.name}`;
+                btn.querySelector(".cfl-level").textContent =
+                    `L${level}·${lvl.name}`;
                 btn.querySelector(".cfl-level").style.color = lvl.color;
                 // Flash animation on level change
                 if (prevLevel !== undefined && prevLevel !== level) {
                     btn.style.transition = "background 0.2s";
-                    btn.style.background = level > prevLevel ? "rgba(255,42,42,0.3)" : "rgba(57,255,20,0.2)";
-                    setTimeout(() => { btn.style.background = "rgba(255,255,255,0.04)"; }, 1200);
+                    btn.style.background =
+                        level > prevLevel
+                            ? "rgba(255,42,42,0.3)"
+                            : "rgba(57,255,20,0.2)";
+                    setTimeout(() => {
+                        btn.style.background = "rgba(255,255,255,0.04)";
+                    }, 1200);
                     const arrow = level > prevLevel ? "▲" : "▼";
-                    const dir = level > prevLevel ? "ESCALATED" : "DE-ESCALATED";
-                    addLog(`[CONFLICT INDEX] ${code} ${dir} → LEVEL ${level} ${arrow}`, null, code);
+                    const dir =
+                        level > prevLevel ? "ESCALATED" : "DE-ESCALATED";
+                    addLog(
+                        `[CONFLICT INDEX] ${code} ${dir} → LEVEL ${level} ${arrow}`,
+                        null,
+                        code,
+                    );
                 }
             }
 
@@ -1657,11 +2706,15 @@
                 try {
                     const res = await fetch("/api/conflict-index");
                     const data = await res.json();
-                    GCC_CONFLICT_DATA.forEach(d => {
+                    GCC_CONFLICT_DATA.forEach((d) => {
                         const prev = liveConflictIndex[d.code];
                         const curr = data[d.code];
                         if (curr) {
-                            updateConflictButton(d.code, curr.level, prev ? prev.level : undefined);
+                            updateConflictButton(
+                                d.code,
+                                curr.level,
+                                prev ? prev.level : undefined,
+                            );
                         }
                     });
                     liveConflictIndex = data;
@@ -1672,8 +2725,9 @@
 
             (function buildConflictBar() {
                 const container = document.getElementById("conflict-buttons");
-                container.style.cssText = "display:flex;align-items:center;gap:6px;flex-wrap:nowrap;";
-                GCC_CONFLICT_DATA.forEach(d => {
+                container.style.cssText =
+                    "display:flex;align-items:center;gap:6px;flex-wrap:nowrap;";
+                GCC_CONFLICT_DATA.forEach((d) => {
                     const lvl = CONFLICT_LEVELS[d.level];
                     const btn = document.createElement("div");
                     btn.className = "cfl-btn";
@@ -1706,24 +2760,36 @@
             // Open war prediction — popup on desktop, same-tab on mobile
             function openWarPrediction() {
                 if (window.innerWidth < 600) {
-                    window.location.href = '/war-prediction.html';
+                    window.location.href = "/war-prediction.html";
                 } else {
-                    window.open('/war-prediction.html', 'warpred', 'width=1100,height=760,resizable=yes');
+                    window.open(
+                        "/war-prediction.html",
+                        "warpred",
+                        "width=1100,height=760,resizable=yes",
+                    );
                 }
             }
 
             // Toggle log / layer drawers
             function toggleMobDrawer(type) {
-                const drawer = document.getElementById(type === 'log' ? 'mob-log-drawer' : 'mob-layers-drawer');
-                const otherDrawer = document.getElementById(type === 'log' ? 'mob-layers-drawer' : 'mob-log-drawer');
-                otherDrawer.classList.remove('open');
-                drawer.classList.toggle('open');
+                const drawer = document.getElementById(
+                    type === "log" ? "mob-log-drawer" : "mob-layers-drawer",
+                );
+                const otherDrawer = document.getElementById(
+                    type === "log" ? "mob-layers-drawer" : "mob-log-drawer",
+                );
+                otherDrawer.classList.remove("open");
+                drawer.classList.toggle("open");
             }
 
             // Close drawers when tapping map
-            document.getElementById('map').addEventListener('click', () => {
-                document.getElementById('mob-log-drawer').classList.remove('open');
-                document.getElementById('mob-layers-drawer').classList.remove('open');
+            document.getElementById("map").addEventListener("click", () => {
+                document
+                    .getElementById("mob-log-drawer")
+                    .classList.remove("open");
+                document
+                    .getElementById("mob-layers-drawer")
+                    .classList.remove("open");
             });
 
             // Sync mobile layer checkbox → desktop checkbox → trigger change event
@@ -1731,16 +2797,24 @@
                 const desktop = document.getElementById(desktopId);
                 if (desktop) {
                     desktop.checked = mobCheckbox.checked;
-                    desktop.dispatchEvent(new Event('change'));
+                    desktop.dispatchEvent(new Event("change"));
                 }
             }
 
             // Also sync desktop → mobile when desktop is used
-            ['layer-flights','layer-ships','layer-weather','layer-airports','layer-hospitals','layer-fuel','layer-routes'].forEach(id => {
+            [
+                "layer-flights",
+                "layer-ships",
+                "layer-weather",
+                "layer-airports",
+                "layer-hospitals",
+                "layer-fuel",
+                "layer-routes",
+            ].forEach((id) => {
                 const desktop = document.getElementById(id);
-                const mobId = 'm-' + id;
+                const mobId = "m-" + id;
                 if (desktop) {
-                    desktop.addEventListener('change', () => {
+                    desktop.addEventListener("change", () => {
                         const mob = document.getElementById(mobId);
                         if (mob) mob.checked = desktop.checked;
                     });
@@ -1749,48 +2823,65 @@
 
             // Mobile tab switching — clones content from desktop columns
             const mobTabSources = {
-                iran:    'col-iran',
-                finance: 'col-finance',
-                tech:    'col-tech',
-                alerts:  'col-alerts'
+                iran: "col-iran",
+                finance: "col-finance",
+                tech: "col-tech",
+                alerts: "col-alerts",
             };
             function showMobTab(tabId) {
                 // Update active tab button
-                document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
-                event.target.classList.add('active');
+                document
+                    .querySelectorAll(".mob-tab")
+                    .forEach((t) => t.classList.remove("active"));
+                event.target.classList.add("active");
                 // Copy content from corresponding desktop column
                 const src = document.getElementById(mobTabSources[tabId]);
-                const dest = document.getElementById('mob-tab-content');
+                const dest = document.getElementById("mob-tab-content");
                 if (src && dest) {
                     dest.innerHTML = src.innerHTML;
                 }
             }
             // Initialise first tab
             (function initMobTab() {
-                const src = document.getElementById('col-iran');
-                const dest = document.getElementById('mob-tab-content');
+                const src = document.getElementById("col-iran");
+                const dest = document.getElementById("mob-tab-content");
                 if (src && dest) dest.innerHTML = src.innerHTML;
             })();
 
             // Re-sync active tab whenever desktop columns update
             function refreshMobTab() {
-                const activeTab = document.querySelector('.mob-tab.active');
+                const activeTab = document.querySelector(".mob-tab.active");
                 if (!activeTab) return;
-                const tabId = Object.keys(mobTabSources).find(k =>
-                    activeTab.textContent.toLowerCase().includes(k === 'iran' ? 'iran' :
-                        k === 'finance' ? 'finance' : k === 'tech' ? 'cyber' : 'strike')
+                const tabId = Object.keys(mobTabSources).find((k) =>
+                    activeTab.textContent
+                        .toLowerCase()
+                        .includes(
+                            k === "iran"
+                                ? "iran"
+                                : k === "finance"
+                                  ? "finance"
+                                  : k === "tech"
+                                    ? "cyber"
+                                    : "strike",
+                        ),
                 );
                 if (tabId) {
                     const src = document.getElementById(mobTabSources[tabId]);
-                    const dest = document.getElementById('mob-tab-content');
+                    const dest = document.getElementById("mob-tab-content");
                     if (src && dest) dest.innerHTML = src.innerHTML;
                 }
             }
             // Patch loadNews and loadStrikes to refresh mobile tab after they run
             const _origLoadNews = loadNews;
-            loadNews = async function() { await _origLoadNews(); refreshMobTab(); };
+            loadNews = async function () {
+                await _origLoadNews();
+                refreshMobTab();
+            };
             const _origLoadStrikes = loadStrikes;
-            loadStrikes = async function() { await _origLoadStrikes(); refreshMobTab(); };
+            loadStrikes = async function () {
+                await _origLoadStrikes();
+                refreshMobTab();
+            };
         </script>
     </body>
 </html>
