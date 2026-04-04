@@ -416,17 +416,118 @@ app.get("/api/strikes", async (req, res) => {
     }
 });
 
-// Fallback for SPA (Single Page Application)
-app.get("/*path", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+// ─────────────────────────────────────────────
+// 🚨 GDN ONLINE ALERT SCRAPER
+// Scrapes gdnonline.com Bahrain + Middle East
+// sections for missile/drone/attack alerts.
+// ─────────────────────────────────────────────
+const GDN_SECTIONS = [
+    "https://www.gdnonline.com/Section/1/Bahrain-News",
+    "https://www.gdnonline.com/GroupSection/MiddleEastNews",
+    "https://www.gdnonline.com/Section/3/World-News",
+];
+
+const ALERT_KEYWORDS = [
+    "missile","rocket","drone","uav","attack","strike","intercept",
+    "explosion","blast","siren","air defence","air defense","air raid",
+    "bdf","bahrain defence force","emergency","evacuation",
+    "bomb","artillery","projectile","debris","aggression","shelling",
+    "missile launch","rocket launch","fired at","shoot down","shot down",
+    "ballistic","hypersonic","houthi","hezbollah","hamas","irgc",
+    "iranian attack","iran attack","iranian aggression","iran war",
+    "iranian drone","iranian missile","iranian strike",
+];
+
+const CLEARED_KEYWORDS = [
+    "all clear","threat cleared","cleared","safe","resumed","lifted",
+    "normal operations","ended","ceased","ceasefire","stand down",
+    "no threat","threat passed","threat over",
+];
+
+let gdnCache = { data: [], fetchedAt: 0 };
+const GDN_TTL = 3 * 60 * 1000; // 3-minute refresh for live alerts
+
+async function scrapeGDN() {
+    if (Date.now() - gdnCache.fetchedAt < GDN_TTL && gdnCache.data.length) {
+        return gdnCache.data;
+    }
+
+    const seen = new Set();
+    const results = [];
+
+    // Regex: extract /Details/{id}/{slug} + inline link text
+    const linkRe = /<a\s+href="(\/Details\/(\d+)\/[^"]+)">([^<]{10,})<\/a>/g;
+
+    for (const url of GDN_SECTIONS) {
+        try {
+            const resp = await axios.get(url, {
+                timeout: 12000,
+                headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
+                    "Accept": "text/html",
+                },
+            });
+            const html = resp.data;
+            let m;
+            linkRe.lastIndex = 0;
+            while ((m = linkRe.exec(html)) !== null) {
+                const [, artPath, articleId, rawTitle] = m;
+                if (seen.has(articleId)) continue;
+                seen.add(articleId);
+
+                const title = rawTitle.trim().replace(/\s+/g, " ");
+                const lower = title.toLowerCase();
+
+                // Skip non-news nav links
+                if (title.length < 15 || /read more|subscribe|follow us|advertise/i.test(title)) continue;
+
+                const isAlert   = ALERT_KEYWORDS.some(k => lower.includes(k));
+                const isCleared = CLEARED_KEYWORDS.some(k => lower.includes(k));
+
+                if (!isAlert && !isCleared) continue;
+
+                // Cleared overrides alert if both match
+                const type = isCleared ? "cleared" : "alert";
+
+                results.push({
+                    id: articleId,
+                    title,
+                    url: `https://www.gdnonline.com${artPath}`,
+                    type,
+                    source: "GDN",
+                    fetchedAt: Date.now(),
+                });
+            }
+        } catch (e) {
+            console.error(`GDN scrape failed for ${url}:`, e.message);
+        }
+    }
+
+    // Sort by article ID descending (higher ID = more recent)
+    results.sort((a, b) => Number(b.id) - Number(a.id));
+
+    gdnCache = { data: results, fetchedAt: Date.now() };
+    return results;
+}
+
+app.get("/api/gdn-alerts", async (req, res) => {
+    try {
+        const alerts = await scrapeGDN();
+        res.json(alerts);
+    } catch (e) {
+        console.error("GDN endpoint error:", e.message);
+        res.json([]);
+    }
 });
 
 // --- 🚀 SYSTEM IGNITION ---
 const srvPort = process.env.PORT || 3000;
-// Fix for "Cannot GET /alerts/..."
-// This redirects any alert sub-pages back to the main dashboard 
-// so the app doesn't crash with a 404.
+
+// Fallback for SPA — must come AFTER all /api/* routes
 app.get("/alerts/:id", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+app.get("/*path", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 

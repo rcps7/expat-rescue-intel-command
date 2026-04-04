@@ -349,6 +349,11 @@
                 box-shadow: 0 0 8px #ff00ff;
             }
 
+            @keyframes blink {
+                0%, 100% { opacity: 1; }
+                50%       { opacity: 0.2; }
+            }
+
             @keyframes scrollLeft {
                 0% {
                     transform: translateX(0);
@@ -1281,6 +1286,62 @@
                 mobLog.prepend(mobEntry);
                 while (mobLog.children.length > 40)
                     mobLog.removeChild(mobLog.lastChild);
+            }
+
+            // ─── GDN ALERT SCRAPER ───────────────────────────
+            // Polls /api/gdn-alerts every 3 min.
+            // Shows 🚨 ALERT (red) or ✅ CLEARED (green) badges.
+            // Deduplicates by article ID so no entry repeats.
+            const seenGdnIds = new Set();
+
+            async function loadGDNAlerts() {
+                try {
+                    const res = await fetch("/api/gdn-alerts");
+                    const alerts = await res.json();
+                    if (!alerts.length) return;
+
+                    // Process newest first, skip already-seen
+                    let added = 0;
+                    alerts.forEach(a => {
+                        if (seenGdnIds.has(a.id)) return;
+                        seenGdnIds.add(a.id);
+
+                        const isCleared = a.type === "cleared";
+                        const badge = isCleared
+                            ? `<span style="background:#003a00;color:#39ff14;border:1px solid #39ff14;padding:1px 6px;border-radius:2px;font-size:9px;margin-right:5px;font-weight:bold;">✅ GDN CLEARED</span>`
+                            : `<span style="background:#3a0000;color:#ff2a2a;border:1px solid #ff2a2a;padding:1px 6px;border-radius:2px;font-size:9px;margin-right:5px;font-weight:bold;animation:blink 1s step-start infinite;">🚨 GDN ALERT</span>`;
+
+                        // Use addLog with a special country code "GDN"
+                        const log = document.getElementById("log-entries");
+                        const mobLog = document.getElementById("mob-log-entries");
+                        const html = `<span style="color:#555;font-size:9px;">GDN ONLINE · LIVE</span><br>${badge}<span style="color:${isCleared ? '#39ff14' : '#ff6060'};">${a.title}</span>`;
+
+                        [log, mobLog].forEach(container => {
+                            const entry = document.createElement("div");
+                            entry.innerHTML = html;
+                            entry.style.cursor = "pointer";
+                            entry.onclick = () => window.open(a.url, "_blank");
+                            if (!isCleared) {
+                                entry.style.background = "rgba(80,0,0,0.25)";
+                                entry.style.borderLeft = "3px solid #ff2a2a";
+                                entry.style.paddingLeft = "6px";
+                            } else {
+                                entry.style.background = "rgba(0,60,0,0.25)";
+                                entry.style.borderLeft = "3px solid #39ff14";
+                                entry.style.paddingLeft = "6px";
+                            }
+                            container.prepend(entry);
+                            while (container.children.length > 40) container.removeChild(container.lastChild);
+                        });
+                        added++;
+                    });
+
+                    if (added > 0) {
+                        console.log(`GDN: ${added} new alert(s) loaded`);
+                    }
+                } catch (e) {
+                    console.warn("GDN feed error:", e.message);
+                }
             }
 
             async function loadThreats() {
@@ -2782,11 +2843,13 @@
             loadNews();
             loadStrikes();
             loadThreats();
+            loadGDNAlerts();
             fetchConflictIndex();
             setInterval(updateRadar, 15000);
             setInterval(loadNews, 300000);
             setInterval(loadStrikes, 600000);
             setInterval(loadThreats, 300000);
+            setInterval(loadGDNAlerts, 3 * 60 * 1000);
             setInterval(fetchConflictIndex, 300000);
 
             /* ============================================
