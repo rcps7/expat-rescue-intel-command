@@ -74,6 +74,41 @@
                 white-space: nowrap;
                 margin-right: 4px;
             }
+            #bhm-banner {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 0 12px;
+                height: 28px;
+                font-size: 10px;
+                font-family: "Courier New", monospace;
+                font-weight: bold;
+                letter-spacing: 0.5px;
+                white-space: nowrap;
+                overflow: hidden;
+                z-index: 998;
+                transition: background 0.4s;
+            }
+            #bhm-banner.bhm-green {
+                background: rgba(0, 60, 0, 0.92);
+                color: #39ff14;
+                border-bottom: 1px solid #1a4d1a;
+            }
+            #bhm-banner.bhm-red {
+                background: rgba(80, 0, 0, 0.97);
+                color: #ff4444;
+                border-bottom: 2px solid #ff2a2a;
+                animation: blink-border 0.8s step-start infinite;
+            }
+            #bhm-banner.bhm-amber {
+                background: rgba(60, 35, 0, 0.95);
+                color: #ffaa00;
+                border-bottom: 1px solid #cc8800;
+            }
+            @keyframes blink-border {
+                0%, 100% { border-bottom-color: #ff2a2a; }
+                50% { border-bottom-color: transparent; }
+            }
             .cfl-btn {
                 display: flex;
                 align-items: center;
@@ -605,6 +640,14 @@
                 #conflict-bar-label {
                     display: none;
                 }
+                #bhm-banner {
+                    height: 24px;
+                    font-size: 9px;
+                    padding: 0 8px;
+                }
+                #bhm-banner span:last-child {
+                    display: none;
+                }
                 .cfl-btn {
                     padding: 4px 8px;
                     font-size: 10px;
@@ -899,6 +942,14 @@
             <div id="conflict-bar">
                 <div id="conflict-bar-label">▶ GCC CONFLICT INDEX</div>
                 <div id="conflict-buttons"></div>
+            </div>
+
+            <!-- BHMONITOR SIREN STATUS BANNER -->
+            <div id="bhm-banner" style="display:none;">
+                <span id="bhm-banner-icon"></span>
+                <span id="bhm-banner-text"></span>
+                <a id="bhm-banner-link" href="#" target="_blank" rel="noopener" style="color:inherit;margin-left:8px;text-decoration:underline;font-size:9px;opacity:0.8;">SOURCE ↗</a>
+                <span style="margin-left:auto;font-size:9px;opacity:0.6;">via bhmonitor.com · @moi_bahrain</span>
             </div>
 
             <div id="map-container">
@@ -1341,6 +1392,105 @@
                     }
                 } catch (e) {
                     console.warn("GDN feed error:", e.message);
+                }
+            }
+
+            // ─── BHMONITOR — Live MOI Bahrain Feed ───────────────
+            // Polls /api/bhmonitor (proxy to bhmonitor.com open API).
+            // Shows siren banner + injects MOI tweets into Mission Log.
+            const seenBhmIds = new Set();
+            let lastSirenActive = false;
+
+            async function loadBHMonitor() {
+                try {
+                    const res = await fetch("/api/bhmonitor");
+                    const { status, siren, feed } = await res.json();
+
+                    // ── Update siren/status banner ──
+                    const banner = document.getElementById("bhm-banner");
+                    const bannerIcon = document.getElementById("bhm-banner-icon");
+                    const bannerText = document.getElementById("bhm-banner-text");
+                    const bannerLink = document.getElementById("bhm-banner-link");
+
+                    if (status || siren) {
+                        banner.style.display = "flex";
+                        banner.className = "";
+
+                        const sirenActive = siren && siren.active;
+                        const emergencyMode = status && status.emergencyMode;
+                        const threatStatus = status ? status.status : "green";
+                        const flightsSuspended = status && status.flightsSuspended;
+
+                        if (sirenActive) {
+                            // 🔴 SIREN ACTIVE — highest alert
+                            banner.classList.add("bhm-red");
+                            bannerIcon.textContent = "🚨 SIREN ACTIVE";
+                            const txt = siren.event && siren.event.sourceText
+                                ? " — " + siren.event.sourceText.substring(0, 120)
+                                : " — AIR RAID WARNING IN EFFECT";
+                            bannerText.textContent = txt;
+                            const url = siren.event && siren.event.sourceUrl ? siren.event.sourceUrl : "#";
+                            bannerLink.href = url;
+                            bannerLink.style.display = "";
+                            if (!lastSirenActive) {
+                                addLog("🚨 SIREN ACTIVATED — Air raid warning issued by MOI Bahrain", url, "BHN", null);
+                            }
+                        } else if (emergencyMode || threatStatus === "red") {
+                            // 🟠 EMERGENCY MODE
+                            banner.classList.add("bhm-amber");
+                            bannerIcon.textContent = "⚠ EMERGENCY MODE";
+                            bannerText.textContent = status && status.reason ? " — " + status.reason.substring(0, 100) : "";
+                            bannerLink.style.display = "none";
+                        } else {
+                            // 🟢 ALL CLEAR
+                            banner.classList.add("bhm-green");
+                            bannerIcon.textContent = "✅ ALL CLEAR";
+                            const reason = status && status.reason ? status.reason : "Situation normal";
+                            bannerText.textContent = " — " + reason.substring(0, 100);
+                            if (flightsSuspended) bannerText.textContent += " ✈ FLIGHTS SUSPENDED";
+                            const lastEvt = siren && siren.event && siren.event.sourceUrl;
+                            bannerLink.href = lastEvt || "#";
+                            bannerLink.style.display = lastEvt ? "" : "none";
+                        }
+                        lastSirenActive = sirenActive;
+                    }
+
+                    // ── Inject new MOI feed posts into Mission Log ──
+                    if (feed && feed.length) {
+                        feed.forEach(post => {
+                            const pid = String(post.id || post.tweetUrl);
+                            if (seenBhmIds.has(pid)) return;
+                            seenBhmIds.add(pid);
+
+                            const isAlert = post.type === "alert";
+                            const badge = isAlert
+                                ? `<span style="background:#3a0000;color:#ff2a2a;border:1px solid #ff2a2a;padding:1px 6px;border-radius:2px;font-size:9px;margin-right:5px;font-weight:bold;animation:blink 1s step-start infinite;">🔴 MOI ALERT</span>`
+                                : `<span style="background:#001a33;color:#4da6ff;border:1px solid #4da6ff;padding:1px 6px;border-radius:2px;font-size:9px;margin-right:5px;font-weight:bold;">🔵 MOI BAHRAIN</span>`;
+                            const snippet = (post.content || "").substring(0, 160);
+                            const log = document.getElementById("log-entries");
+                            const mobLog = document.getElementById("mob-log-entries");
+                            const ts = post.timestamp || post.createdAt;
+                            const timeStr = ts ? new Date(ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "Asia/Riyadh" }) : "";
+                            const dateStr = ts ? new Date(ts).toLocaleDateString("en-GB", { day: "2-digit", month: "short", timeZone: "Asia/Riyadh" }) : "";
+                            const html = `<span style="color:#555;font-size:9px;">${dateStr} ${timeStr} AST</span><br>${badge}<span style="color:${isAlert ? '#ff6060' : '#b0c8e8'};">${snippet}</span>`;
+
+                            [log, mobLog].forEach(container => {
+                                const entry = document.createElement("div");
+                                entry.innerHTML = html;
+                                entry.style.cursor = "pointer";
+                                if (post.tweetUrl) entry.onclick = () => window.open(post.tweetUrl, "_blank");
+                                if (isAlert) {
+                                    entry.style.background = "rgba(80,0,0,0.25)";
+                                    entry.style.borderLeft = "3px solid #ff2a2a";
+                                    entry.style.paddingLeft = "6px";
+                                }
+                                container.prepend(entry);
+                                while (container.children.length > 40) container.removeChild(container.lastChild);
+                            });
+                        });
+                    }
+                } catch (e) {
+                    console.warn("BHMonitor feed error:", e.message);
                 }
             }
 
@@ -2844,12 +2994,14 @@
             loadStrikes();
             loadThreats();
             loadGDNAlerts();
+            loadBHMonitor();
             fetchConflictIndex();
             setInterval(updateRadar, 15000);
             setInterval(loadNews, 300000);
             setInterval(loadStrikes, 600000);
             setInterval(loadThreats, 300000);
             setInterval(loadGDNAlerts, 3 * 60 * 1000);
+            setInterval(loadBHMonitor, 30 * 1000);
             setInterval(fetchConflictIndex, 300000);
 
             /* ============================================

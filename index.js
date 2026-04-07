@@ -520,6 +520,45 @@ app.get("/api/gdn-alerts", async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────
+// 🛰️ BHMONITOR PROXY — Live MOI Bahrain feed
+// Pulls from bhmonitor.com open API (no key needed)
+// Sources: MOI Bahrain @moi_bahrain via BHMonitor
+// ─────────────────────────────────────────────
+let bhmCache = { data: null, fetchedAt: 0 };
+const BHM_TTL = 30 * 1000; // 30-second cache
+
+async function fetchBHMonitor() {
+    if (bhmCache.data && Date.now() - bhmCache.fetchedAt < BHM_TTL) {
+        return bhmCache.data;
+    }
+    const headers = { "Accept": "application/json", "User-Agent": "Mozilla/5.0" };
+    const base = "https://bhmonitor.com";
+    const [statusRes, sirenRes, feedRes] = await Promise.allSettled([
+        axios.get(`${base}/api/status`, { timeout: 8000, headers }),
+        axios.get(`${base}/api/siren`, { timeout: 8000, headers }),
+        axios.get(`${base}/api/feed`, { timeout: 8000, headers }),
+    ]);
+
+    const status = statusRes.status === "fulfilled" ? statusRes.value.data : null;
+    const siren  = sirenRes.status  === "fulfilled" ? sirenRes.value.data  : null;
+    const feed   = feedRes.status   === "fulfilled" ? feedRes.value.data   : [];
+
+    const data = { status, siren, feed: Array.isArray(feed) ? feed.slice(0, 30) : [] };
+    bhmCache = { data, fetchedAt: Date.now() };
+    return data;
+}
+
+app.get("/api/bhmonitor", async (req, res) => {
+    try {
+        const data = await fetchBHMonitor();
+        res.json(data);
+    } catch (e) {
+        console.error("BHMonitor proxy error:", e.message);
+        res.json({ status: null, siren: null, feed: [] });
+    }
+});
+
 // --- 🚀 SYSTEM IGNITION ---
 const srvPort = process.env.PORT || 3000;
 
