@@ -131,3 +131,10 @@ dist
 
 # Replit debugger
 .breakpoints
+
+# Replit config files (contain secrets and internal config)
+.replit
+replit.nix
+.upm/
+.config/
+.local/
