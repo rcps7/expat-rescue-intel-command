@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "opcLjVe9WHyT3TrP41nrH"
+uri = "file://README.md"
+type = "text"
+title = "README.md — Expat Rescue Intel Command"
