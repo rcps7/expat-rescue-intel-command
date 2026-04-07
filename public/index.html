@@ -1003,6 +1003,15 @@
                     <label
                         ><input type="checkbox" id="layer-routes" /> 🛣️
                         ROUTES</label
+                    ><br />
+                    <div style="font-size:9px;color:#f5c518;letter-spacing:1px;margin:6px 0 2px;border-top:1px solid #1e2d1e;padding-top:6px;">▶ BHN BAHRAIN</div>
+                    <label
+                        ><input type="checkbox" id="layer-shelters" checked /> 🟡
+                        SHELTERS</label
+                    ><br />
+                    <label
+                        ><input type="checkbox" id="layer-bhm-hospitals" checked /> 🔵
+                        BHN MEDICAL</label
                     >
                 </div>
 
@@ -1123,6 +1132,25 @@
                         onchange="syncLayer(this,'layer-routes')"
                     />
                     🛣️ Routes</label
+                >
+                <div style="font-size:9px;color:#f5c518;letter-spacing:1px;margin:8px 0 4px;border-top:1px solid #1e2d1e;padding-top:6px;">▶ BHN BAHRAIN</div>
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-shelters"
+                        checked
+                        onchange="syncLayer(this,'layer-shelters')"
+                    />
+                    🟡 Shelters</label
+                >
+                <label
+                    ><input
+                        type="checkbox"
+                        id="m-layer-bhm-hospitals"
+                        checked
+                        onchange="syncLayer(this,'layer-bhm-hospitals')"
+                    />
+                    🔵 BHN Medical</label
                 >
             </div>
 
@@ -1257,6 +1285,8 @@
                 hospitals: L.layerGroup(),
                 fuel: L.layerGroup(),
                 routes: L.layerGroup(),
+                shelters: L.layerGroup(),
+                bhmHospitals: L.layerGroup(),
                 weather: L.tileLayer(
                     "https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=f40cc357f6be024566a0c703c7320ea6",
                 ),
@@ -2679,11 +2709,74 @@
                 });
             }
 
+            // ─── BHMonitor Shelter & Hospital Layers ─────────────
+            async function buildBHMShelterLayers() {
+                try {
+                    const res = await fetch("/api/bhm-locations");
+                    const { shelters, hospitals } = await res.json();
+
+                    // SHELTERS
+                    layers.shelters.clearLayers();
+                    shelters.forEach(s => {
+                        const isCurrent = s.phase === "Current";
+                        const color = isCurrent ? "#f5c518" : "#ff6b35";
+                        const icon = L.divIcon({
+                            className: "",
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14],
+                            html: `<div style="width:26px;height:26px;border-radius:4px;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 6px ${color}55;">🛡️</div>`,
+                        });
+                        const popup = makePopup(`
+                            <div style="font-weight:bold;font-size:13px;color:${color};border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                                🛡️ ${s.name}
+                            </div>
+                            <div><span style="color:#8b949e;">PHASE:</span> <span style="color:${color};font-weight:bold;">${s.phase.toUpperCase()}</span></div>
+                            <div><span style="color:#8b949e;">GOVERNORATE:</span> ${s.governorate}</div>
+                            <div><span style="color:#8b949e;">CAPACITY:</span> ${s.capacity.toLocaleString()} persons</div>
+                            <div><span style="color:#8b949e;">COORDS:</span> ${s.coordinates[0].toFixed(4)}, ${s.coordinates[1].toFixed(4)}</div>
+                            <div style="margin-top:6px;color:#aaa;font-size:10px;">Source: BHMonitor / Bahrain Civil Defence</div>
+                        `);
+                        L.marker(s.coordinates, { icon }).bindPopup(popup).addTo(layers.shelters);
+                    });
+
+                    // BHM HOSPITALS
+                    layers.bhmHospitals.clearLayers();
+                    hospitals.forEach(h => {
+                        const color = h.isPrimary ? "#00d4ff" : "#0099bb";
+                        const icon = L.divIcon({
+                            className: "",
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14],
+                            html: `<div style="width:26px;height:26px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 6px ${color}55;">${h.isPrimary ? "🏥" : "➕"}</div>`,
+                        });
+                        const phone = h.phone ? `<div><span style="color:#8b949e;">PHONE:</span> <a href="tel:${h.phone}" style="color:${color};">${h.phone}</a></div>` : "";
+                        const popup = makePopup(`
+                            <div style="font-weight:bold;font-size:13px;color:${color};border-bottom:1px solid #30363d;padding-bottom:4px;margin-bottom:6px;">
+                                🏥 ${h.name}
+                            </div>
+                            <div><span style="color:#8b949e;">TYPE:</span> ${h.type}</div>
+                            <div><span style="color:#8b949e;">ADDRESS:</span> ${h.address}</div>
+                            ${phone}
+                            <div><span style="color:#8b949e;">HOURS:</span> <span style="color:${h.is24hr ? '#39ff14' : '#ffaa00'}">${h.hours}</span></div>
+                            <div style="margin-top:6px;color:#aaa;font-size:10px;">Source: BHMonitor Bahrain</div>
+                        `);
+                        L.marker(h.coordinates, { icon }).bindPopup(popup).addTo(layers.bhmHospitals);
+                    });
+
+                    // Add both to map (checked by default)
+                    map.addLayer(layers.shelters);
+                    map.addLayer(layers.bhmHospitals);
+                } catch(e) {
+                    console.warn("BHM locations error:", e.message);
+                }
+            }
+
             // Build all ground intel layers on load
             buildAirportLayers();
             buildHospitalLayers();
             buildFuelLayers();
             buildRouteLayers();
+            buildBHMShelterLayers();
 
             // Wire layer toggles
             ["airports", "hospitals", "fuel", "routes"].forEach((key) => {
@@ -2693,6 +2786,13 @@
                         if (e.target.checked) map.addLayer(layers[key]);
                         else map.removeLayer(layers[key]);
                     });
+            });
+
+            document.getElementById("layer-shelters").addEventListener("change", (e) => {
+                e.target.checked ? map.addLayer(layers.shelters) : map.removeLayer(layers.shelters);
+            });
+            document.getElementById("layer-bhm-hospitals").addEventListener("change", (e) => {
+                e.target.checked ? map.addLayer(layers.bhmHospitals) : map.removeLayer(layers.bhmHospitals);
             });
 
             // --- 5. INITIALIZE ---

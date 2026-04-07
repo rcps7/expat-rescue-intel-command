@@ -549,6 +549,11 @@ async function fetchBHMonitor() {
     return data;
 }
 
+// Static BHMonitor shelter + hospital locations
+app.get("/api/bhm-locations", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "bhm-locations.json"));
+});
+
 app.get("/api/bhmonitor", async (req, res) => {
     try {
         const data = await fetchBHMonitor();
