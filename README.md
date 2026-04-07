@@ -10,7 +10,7 @@ Originally built for [pravasiintel.com](https://pravasiintel.com).
 
 > Map view with live flights, ships, ground intel layers, and GCC Conflict Index bar
 
-![Dashboard](https://www.gdnonline.com/gdnimages/20260404/20260404162346ytjyju_T.jpg)
+![Dashboard](https://pravasiintel.com)
 
 ---
 
@@ -191,4 +191,4 @@ MIT
 
 ## Author
 
-Built by [Roopchand P S](mailto:gdnhd@tradearabia.net) for [Pravasi Intel](https://pravasiintel.com) — crisis intelligence for the Gulf expatriate community.
+Built by [Roopchand P S](mailto:bahrainneurology@gmail.com) for [Pravasi Intel](https://pravasiintel.com) — crisis intelligence for the Gulf expatriate community.
